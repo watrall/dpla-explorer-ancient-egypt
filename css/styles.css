@@ -291,6 +291,7 @@ main {
   text-overflow: ellipsis;
 }
 
+/* --- Updated Institution Column Styling (Allows Wrapping) --- */
 .compact-image-item .civ-col-institution {
   flex: 1;
   padding: 0 10px;
@@ -298,10 +299,11 @@ main {
   color: #777;
   font-style: italic;
   text-align: center;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  /* Allow text to wrap */
+  white-space: normal; /* Changed from nowrap */
+  word-break: break-word; /* Handle long words */
 }
+/* ---------------------------------------------------------- */
 
 .compact-image-item .civ-col-link {
   flex: 0 0 40px;
