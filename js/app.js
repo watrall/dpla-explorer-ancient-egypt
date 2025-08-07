@@ -5,11 +5,12 @@ const API_PROXY_URL = 'https://YOUR_FUNCTION_REGION.functions.app/dpla-proxy'; /
 const CACHE_DURATION_HOURS = 24;
 const DEFAULT_ITEMS_PER_PAGE = 20;
 const SEARCH_DEBOUNCE_MS = 300; // Debounce search input
+const DEMO_RECORD_COUNT = 200; // Total number of demo records to generate
 
 // --- State Management ---
 let appState = {
-    allRecords: [], // Full dataset fetched from API
-    filteredRecords: [], // Records after applying search filter
+    allRecords: [], // Full dataset (for search/filter)
+    filteredRecords: [], // Records after applying search filter (for display/pagination)
     currentView: 'list', // 'list' or 'tile'
     currentPage: 1,
     itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
@@ -68,55 +69,60 @@ function setError(hasError) {
     }
 }
 
-function getCacheKey(query, page, perPage) {
-    return `dpla_egypt_${query}_page${page}_per${perPage}`;
-}
+// --- Cache Management (using localStorage) ---
+const FULL_DATASET_CACHE_KEY = 'dpla_egypt_full_dataset_demo';
 
-function isCacheValid(cachedData) {
-    if (!cachedData || !cachedData.timestamp) return false;
+function isCacheValid(cachedItem) {
+    if (!cachedItem || !cachedItem.timestamp) return false;
     const now = new Date().getTime();
-    const cacheAgeHours = (now - cachedData.timestamp) / (1000 * 60 * 60);
+    const cacheAgeHours = (now - cachedItem.timestamp) / (1000 * 60 * 60);
     return cacheAgeHours < CACHE_DURATION_HOURS;
 }
 
-function saveToCache(key, data) {
+function saveFullDatasetToCache(data) {
     try {
         const cacheItem = {
             timestamp: new Date().getTime(),
-             data
+            data: data
         };
-        localStorage.setItem(key, JSON.stringify(cacheItem));
+        localStorage.setItem(FULL_DATASET_CACHE_KEY, JSON.stringify(cacheItem));
+        console.log("Full dataset saved to cache.");
     } catch (e) {
-        console.warn("Could not save to localStorage", e);
-        // Fail silently, app should still work
+        console.warn("Could not save full dataset to localStorage", e);
     }
 }
 
-function loadFromCache(key) {
+function loadFullDatasetFromCache() {
     try {
-        const cachedItem = JSON.parse(localStorage.getItem(key));
+        const cachedItemString = localStorage.getItem(FULL_DATASET_CACHE_KEY);
+        if (!cachedItemString) {
+            console.log("No cached dataset found.");
+            return null;
+        }
+        const cachedItem = JSON.parse(cachedItemString);
         if (isCacheValid(cachedItem)) {
+            console.log("Loaded full dataset from cache.");
             return cachedItem.data;
         } else {
-            localStorage.removeItem(key); // Remove expired cache
+            console.log("Cached dataset expired, removing.");
+            localStorage.removeItem(FULL_DATASET_CACHE_KEY);
             return null;
         }
     } catch (e) {
-        console.warn("Could not load from localStorage", e);
+        console.warn("Could not load full dataset from localStorage", e);
         return null;
     }
 }
 
 // --- API Interaction (Placeholder/Demo) ---
 
-// Simulate fetching data from the DigitalOcean proxy function
-async function fetchDplaData(query = "ancient egypt", page = 1, perPage = DEFAULT_ITEMS_PER_PAGE) {
-    const cacheKey = getCacheKey(query, page, perPage);
-    const cachedData = loadFromCache(cacheKey);
+// Fetches the full dataset (either from cache or generates it)
+// Pagination is handled client-side on the full dataset in renderCurrentView
+async function fetchFullDplaDataset() {
+    let fullDataset = loadFullDatasetFromCache();
 
-    if (cachedData) {
-        console.log("Loaded data from cache for key:", cacheKey);
-        return cachedData;
+    if (fullDataset) {
+        return fullDataset;
     }
 
     setLoading(true);
@@ -126,33 +132,15 @@ async function fetchDplaData(query = "ancient egypt", page = 1, perPage = DEFAUL
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-        // In a real scenario, you would call the DigitalOcean function:
-        // const response = await fetch(API_PROXY_URL, {
-        //     method: 'POST',
-        //     headers: { 'Content-Type': 'application/json' },
-        //     body: JSON.stringify({ query, page, perPage })
-        // });
-        // if (!response.ok) throw new Error(`API error: ${response.status}`);
-        // const data = await response.json();
-
-        // For MVP, use demo data
-        const demoData = generateDemoData(200); // Generate 200 demo records
-        const start = (page - 1) * perPage;
-        const end = start + perPage;
-        const paginatedData = demoData.slice(start, end);
-
-        const result = {
-            total: demoData.length,
-            currentPage: page,
-            itemsPerPage: perPage,
-             paginatedData
-        };
-
-        saveToCache(cacheKey, result);
-        return result;
+        console.log("Generating new demo dataset...");
+        // In a real scenario, you would call the DigitalOcean function here
+        // to get the *full* set of "ancient egypt" records.
+        fullDataset = generateDemoData(DEMO_RECORD_COUNT);
+        saveFullDatasetToCache(fullDataset);
+        return fullDataset;
 
     } catch (error) {
-        console.error("Error fetching data:", error);
+        console.error("Error fetching full dataset:", error);
         setError(true);
         return null;
     } finally {
@@ -257,6 +245,8 @@ function updatePaginationControls(totalRecords) {
 }
 
 function renderCurrentView() {
+    // Calculate records to show based on current page and items per page
+    // This operates on the `filteredRecords` array
     const start = (appState.currentPage - 1) * appState.itemsPerPage;
     const end = start + appState.itemsPerPage;
     const recordsToShow = appState.filteredRecords.slice(start, end);
@@ -266,7 +256,7 @@ function renderCurrentView() {
     } else {
         renderTileView(recordsToShow);
     }
-    updatePaginationControls(appState.filteredRecords.length);
+    updatePaginationControls(appState.filteredRecords.length); // Total count for pagination
 }
 
 
@@ -304,7 +294,6 @@ function setupEventListeners() {
         appState.itemsPerPage = parseInt(e.target.value, 10);
         appState.currentPage = 1; // Reset to first page
         renderCurrentView(); // Re-render with new page size
-        // Note: In a full implementation fetching from API, this would trigger a new fetch.
     });
 
     elements.prevPageBtn.addEventListener('click', () => {
@@ -332,7 +321,7 @@ function filterAndRender() {
             (record.sourceResource?.description?.[0]?.toLowerCase().includes(appState.searchTerm))
         );
     } else {
-        appState.filteredRecords = [...appState.allRecords]; // Shallow copy
+        appState.filteredRecords = [...appState.allRecords]; // Shallow copy of all records
     }
     appState.currentPage = 1; // Reset to first page after filtering
     renderCurrentView();
@@ -346,23 +335,29 @@ async function initApp() {
 
     setupEventListeners();
 
-    // Initial data fetch (for MVP, this is demo data)
-    const initialData = await fetchDplaData(); // Uses default "ancient egypt" query
-    if (initialData && initialData.data) {
-        appState.allRecords = initialData.data;
+    // --- Fetch the full dataset ---
+    const fullDataset = await fetchFullDplaDataset();
+
+    if (fullDataset && Array.isArray(fullDataset)) {
+        appState.allRecords = fullDataset;
         appState.filteredRecords = [...appState.allRecords]; // Initially, no filter
-        renderCurrentView();
+        renderCurrentView(); // This will render the first page
         showElement(elements.contentArea);
-    } else if (!appState.hasError) {
-         // If fetch failed but no error was set, it might be due to cache miss and network issue in demo
-         // For demo, we can generate data locally if fetch fails unexpectedly
-         console.log("Initial fetch failed or returned no data, using local generation.");
-         appState.allRecords = generateDemoData(100);
+        console.log("Application initialized successfully with demo data.");
+    } else if (!appState.hasError && !appState.isLoading) {
+         // If fetch failed but no error was set, and we are not still loading, it's unexpected
+         console.warn("Fetch did not return data and no error was set. This is unusual.");
+         // Fallback to local generation if cache and fetch both failed unexpectedly
+         console.log("Falling back to local demo data generation.");
+         appState.allRecords = generateDemoData(DEMO_RECORD_COUNT);
          appState.filteredRecords = [...appState.allRecords];
          renderCurrentView();
          showElement(elements.contentArea);
+         // Save this fallback generation to cache for next time
+         saveFullDatasetToCache(appState.allRecords);
     }
     // If there was an error, setError(true) would have been called and UI updated
+    // If still loading, the load success will trigger the render.
 }
 
 // --- Demo Data Generator (MVP Placeholder) ---
