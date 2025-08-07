@@ -11,9 +11,7 @@ const DEMO_RECORD_COUNT = 200; // Total number of demo records to generate
 let appState = {
     allRecords: [],
     filteredRecords: [],
-    // --- Update Initial View to Compact Card ---
-    currentView: 'compact-card', // 'list', 'compact-card', or 'tile' // <-- Changed default
-    // -----------------------------------------
+    currentView: 'compact-card', // Default to Compact Card View
     currentPage: 1,
     itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
     searchTerm: '',
@@ -86,7 +84,7 @@ function saveFullDatasetToCache(data) {
     try {
         const cacheItem = {
             timestamp: new Date().getTime(),
-            data: data // Store the full array directly
+             data // Store the full array directly
         };
         localStorage.setItem(FULL_DATASET_CACHE_KEY, JSON.stringify(cacheItem));
         console.log("Full dataset saved to cache.");
@@ -121,10 +119,6 @@ function loadFullDatasetFromCache() {
 // --- API Interaction (Placeholder/Demo) ---
 
 async function fetchFullDplaDataset() {
-    // For MVP, we primarily care about the full dataset for search/filtering
-    // Pagination on the full set can be done client-side.
-    // Let's try to load the full set first.
-
     let fullDataset = loadFullDatasetFromCache();
 
     if (fullDataset) {
@@ -139,8 +133,6 @@ async function fetchFullDplaDataset() {
 
     try {
         console.log("Generating new demo dataset...");
-        // In a real scenario, you would call the DigitalOcean function here
-        // to get the *full* set of "ancient egypt" records.
         fullDataset = generateDemoData(DEMO_RECORD_COUNT);
         saveFullDatasetToCache(fullDataset);
         return fullDataset;
@@ -169,7 +161,6 @@ function renderListView(records) {
         const provider = record.provider?.name || 'Unknown Provider';
         const linkUrl = record.isShownAt || '#';
 
-        // Truncate description for list view
         const truncatedDescription = description.length > 200 ? description.substring(0, 200) + '...' : description;
 
         itemElement.innerHTML = `
@@ -196,15 +187,14 @@ function renderTileView(records) {
         const title = record.sourceResource?.title?.[0] || 'Untitled';
         const provider = record.provider?.name || 'Unknown Provider';
         const linkUrl = record.isShownAt || '#';
-        const imageUrl = record.object; // DPLA thumbnail URL
+        const imageUrl = record.object;
         const resourceType = record.sourceResource?.type?.[0]?.toLowerCase() || 'unknown';
 
         let imageHtml = '';
         if (imageUrl) {
             imageHtml = `<img src="${imageUrl}" alt="Thumbnail for ${title}">`;
         } else {
-            // Determine icon based on type
-            let iconName = 'file'; // Default
+            let iconName = 'file';
             if (resourceType.includes('image')) iconName = 'image';
             else if (resourceType.includes('text')) iconName = 'file-text';
             else if (resourceType.includes('physical')) iconName = 'gallery-vertical-end';
@@ -231,32 +221,30 @@ function renderTileView(records) {
     elements.contentArea.innerHTML = '';
     elements.contentArea.appendChild(gridElement);
 
-    // Initialize Lucide icons for the newly added elements (including placeholders)
     lucide.createIcons();
 }
 
-// --- Add Compact Card View Rendering Function ---
+// --- Compact Card View Rendering Function ---
 function renderCompactCardView(records) {
     const listElement = document.createElement('ul');
-    listElement.className = 'compact-card-view'; // Use the new CSS class
+    listElement.className = 'compact-card-view';
 
     records.forEach(record => {
         const itemElement = document.createElement('li');
-        itemElement.className = 'compact-card-item'; // Use the new CSS class
+        itemElement.className = 'compact-card-item';
 
         const title = record.sourceResource?.title?.[0] || 'Untitled';
         const description = record.sourceResource?.description?.[0] || 'No description available.';
         const provider = record.provider?.name || 'Unknown Provider';
         const linkUrl = record.isShownAt || '#';
-        const imageUrl = record.object; // DPLA thumbnail URL
+        const imageUrl = record.object;
         const resourceType = record.sourceResource?.type?.[0]?.toLowerCase() || 'unknown';
 
         let imageHtml = '';
         if (imageUrl) {
             imageHtml = `<img src="${imageUrl}" alt="Thumbnail for ${title}">`;
         } else {
-            // Determine icon based on type (same logic as tile view)
-            let iconName = 'file'; // Default
+            let iconName = 'file';
             if (resourceType.includes('image')) iconName = 'image';
             else if (resourceType.includes('text')) iconName = 'file-text';
             else if (resourceType.includes('physical')) iconName = 'gallery-vertical-end';
@@ -280,7 +268,7 @@ function renderCompactCardView(records) {
                 <p class="provider">Provider: ${provider}</p>
                 <a href="${linkUrl}" target="_blank" class="view-link">
                     View Record
-                    <i data-lucide="square-arrow-out-up-right"></i> <!-- Link icon -->
+                    <i data-lucide="square-arrow-out-up-right"></i>
                 </a>
             </div>
         `;
@@ -312,20 +300,18 @@ function updatePaginationControls(totalRecords) {
 }
 
 function renderCurrentView() {
-    // Calculate records to show based on current page and items per page
-    // This operates on the `filteredRecords` array
     const start = (appState.currentPage - 1) * appState.itemsPerPage;
     const end = start + appState.itemsPerPage;
     const recordsToShow = appState.filteredRecords.slice(start, end);
 
     if (appState.currentView === 'list') {
         renderListView(recordsToShow);
-    } else if (appState.currentView === 'tile') { // <-- Added 'tile' check
+    } else if (appState.currentView === 'tile') {
         renderTileView(recordsToShow);
-    } else if (appState.currentView === 'compact-card') { // <-- Added 'compact-card' check
+    } else if (appState.currentView === 'compact-card') {
         renderCompactCardView(recordsToShow);
     }
-    updatePaginationControls(appState.filteredRecords.length); // Total count for pagination
+    updatePaginationControls(appState.filteredRecords.length);
 }
 
 
@@ -364,7 +350,7 @@ function setupEventListeners() {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             appState.searchTerm = e.target.value.toLowerCase();
-            appState.currentPage = 1; // Reset to first page on new search
+            appState.currentPage = 1;
             filterAndRender();
         }, SEARCH_DEBOUNCE_MS);
     });
@@ -372,15 +358,15 @@ function setupEventListeners() {
     // Pagination
     elements.itemsPerPageSelect.addEventListener('change', (e) => {
         appState.itemsPerPage = parseInt(e.target.value, 10);
-        appState.currentPage = 1; // Reset to first page
-        renderCurrentView(); // Re-render with new page size
+        appState.currentPage = 1;
+        renderCurrentView();
     });
 
     elements.prevPageBtn.addEventListener('click', () => {
         if (appState.currentPage > 1) {
             appState.currentPage--;
             renderCurrentView();
-            window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
 
@@ -389,7 +375,7 @@ function setupEventListeners() {
         if (appState.currentPage < totalPages) {
             appState.currentPage++;
             renderCurrentView();
-            window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
 }
@@ -401,52 +387,42 @@ function filterAndRender() {
             (record.sourceResource?.description?.[0]?.toLowerCase().includes(appState.searchTerm))
         );
     } else {
-        appState.filteredRecords = [...appState.allRecords]; // Shallow copy of all records
+        appState.filteredRecords = [...appState.allRecords];
     }
-    appState.currentPage = 1; // Reset to first page after filtering
+    appState.currentPage = 1;
     renderCurrentView();
 }
 
 // --- Initialization ---
 
 async function initApp() {
-    // Initialize Lucide icons on page load (including those in the view toggle buttons)
     lucide.createIcons();
 
     setupEventListeners();
 
     // --- Ensure Correct Button is Active on Load ---
-    // Based on the initial appState.currentView ('compact-card')
-    // The setView function handles this correctly now, so we can just call it.
-    // Alternatively, set the initial state directly:
     elements.listViewBtn.classList.remove('active');
     elements.compactCardViewBtn.classList.add('active'); // Set Compact Card View button as active by default
     elements.tileViewBtn.classList.remove('active');
     // ----------------------------------------------
 
-    // --- Fetch the full dataset ---
     const fullDataset = await fetchFullDplaDataset();
 
     if (fullDataset && Array.isArray(fullDataset)) {
         appState.allRecords = fullDataset;
-        appState.filteredRecords = [...appState.allRecords]; // Initially, no filter
-        renderCurrentView(); // This will render the first page of the 'compact-card' view
+        appState.filteredRecords = [...appState.allRecords];
+        renderCurrentView();
         showElement(elements.contentArea);
         console.log("Application initialized successfully with demo data.");
     } else if (!appState.hasError && !appState.isLoading) {
-         // If fetch failed but no error was set, and we are not still loading, it's unexpected
          console.warn("Fetch did not return data and no error was set. This is unusual.");
-         // Fallback to local generation if cache and fetch both failed unexpectedly
          console.log("Falling back to local demo data generation.");
          appState.allRecords = generateDemoData(DEMO_RECORD_COUNT);
          appState.filteredRecords = [...appState.allRecords];
          renderCurrentView();
          showElement(elements.contentArea);
-         // Save this fallback generation to cache for next time
          saveFullDatasetToCache(appState.allRecords);
     }
-    // If there was an error, setError(true) would have been called and UI updated
-    // If still loading, the load success will trigger the render.
 }
 
 // --- Demo Data Generator (MVP Placeholder) ---
@@ -492,9 +468,8 @@ function generateDemoData(count) {
         const title = titles[Math.floor(Math.random() * titles.length)];
         const description = descriptions[Math.floor(Math.random() * descriptions.length)];
 
-        // Simulate having or not having an image
-        const hasImage = Math.random() > 0.2; // 80% chance of having an image
-        const imageUrl = hasImage ? `https://picsum.photos/seed/egypt${i}/300/200` : null; // Using Picsum for placeholder images
+        const hasImage = Math.random() > 0.2;
+        const imageUrl = hasImage ? `https://picsum.photos/seed/egypt${i}/300/200` : null;
 
         data.push({
             id: `demo-record-${i}`,
@@ -506,8 +481,8 @@ function generateDemoData(count) {
             provider: {
                 name: provider
             },
-            isShownAt: `https://example.com/record/${i}`, // Placeholder link
-            object: imageUrl // DPLA thumbnail URL field
+            isShownAt: `https://example.com/record/${i}`,
+            object: imageUrl
         });
     }
     return data;

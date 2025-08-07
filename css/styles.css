@@ -64,7 +64,7 @@ header h1 {
   gap: 15px;
 }
 
-/* --- Search Container & Input Styling --- */
+/* --- Search Container & Input Styling (Inspired by orcid-archaeologists) --- */
 .search-container {
   width: 100%;
   display: flex;
@@ -78,33 +78,36 @@ header h1 {
 }
 
 .search-input-wrapper input {
-  padding: 10px 15px 10px 40px;
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
+  padding: 10px 15px 10px 40px; /* Add padding on the left for the icon */
+  background-color: #f5f5f5; /* Light gray background */
+  border: 1px solid #ddd; /* Softer border */
   border-radius: 4px;
   width: 100%;
   font-size: 16px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; /* Smooth transition */
 }
 
 .search-input-wrapper input:focus {
   outline: none;
-  border-color: var(--primary-color);
-  box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2);
-  background-color: #fff;
+  /* --- Focus State --- */
+  border-color: var(--primary-color); /* Use primary color on focus */
+  box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2); /* Subtle focus ring using primary color */
+  background-color: #fff; /* Background becomes white on focus */
+  /* ------------------ */
 }
 
+/* Style for the search icon */
 .search-icon {
   position: absolute;
-  left: 12px;
-  top: 50%;
-  transform: translateY(-50%);
-  color: #999;
-  pointer-events: none;
-  width: 18px;
+  left: 12px; /* Position from the left */
+  top: 50%; /* Center vertically */
+  transform: translateY(-50%); /* Adjust for exact centering */
+  color: #999; /* Muted icon color */
+  pointer-events: none; /* Icon shouldn't interfere with input clicks */
+  width: 18px; /* Set icon size */
   height: 18px;
 }
-/* --------------------------------------- */
+/* -------------------------------------------------------------------------- */
 
 
 .view-toggle {
@@ -181,17 +184,18 @@ main {
 }
 
 
-/* --- Updated Compact Card View (List-like) --- */
+/* --- Compact Card View (List-like with Thumbnail) --- */
 .compact-card-view {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .compact-card-item {
   display: flex;
   align-items: flex-start; /* Align items to the top */
-  padding: 10px 0; /* Reduced padding, only top/bottom */
-  border-bottom: 1px solid var(--border-color); /* Add subtle bottom border like list */
+  padding: 12px 0; /* Padding top and bottom */
+  border-bottom: 1px solid var(--border-color); /* Subtle separator */
 }
 
 .compact-card-item:last-child {
@@ -199,49 +203,51 @@ main {
 }
 
 .compact-card-item:hover {
-  background-color: #f9f9f9; /* Subtle hover background change */
+  background-color: #f9f9f9; /* Subtle hover background */
 }
 
 .compact-card-image-container {
-  width: 80px; /* Image width */
-  height: 80px; /* Image height */
-  min-width: 80px; /* Prevents shrinking */
+  width: 80px; /* Fixed width for thumbnail */
+  height: 80px; /* Fixed height for thumbnail */
+  min-width: 80px; /* Prevent shrinking */
   background-color: var(--secondary-color);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+  /* No border-radius or shadow for a flat list look */
   margin-right: 15px; /* Space between image and text */
 }
 
 .compact-card-image-container img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* Cover and crop to fit container */
   display: block;
 }
 
 .compact-card-image-container .icon-placeholder {
-  color: #95a5a6;
-  width: 60%;
+  color: #95a5a6; /* Muted color for icons */
+  width: 60%; /* Slightly smaller than container */
   height: 60%;
 }
 
 .compact-card-content {
-  flex: 1;
+  flex: 1; /* Take remaining space */
   display: flex;
   flex-direction: column;
+  /* Reduce default paragraph margins for tighter spacing */
 }
 
 .compact-card-content h3 {
-  margin: 0 0 5px 0; /* Reduced margins */
+  margin: 0 0 6px 0; /* Reduced top/bottom margins */
   font-size: 1em; /* Standard title size */
   font-weight: 500;
   line-height: 1.3;
 }
 
 .compact-card-content p.description {
-  margin: 0 0 5px 0; /* Reduced margins */
+  margin: 0 0 6px 0; /* Reduced margins */
   font-size: 0.9em; /* Smaller description */
   color: #555;
   line-height: 1.4; /* Tighter line height */
@@ -253,7 +259,7 @@ main {
 }
 
 .compact-card-content p.provider {
-  margin: 0 0 5px 0; /* Reduced margin */
+  margin: 0 0 6px 0; /* Reduced margin */
   font-size: 0.85em; /* Smaller provider text */
   color: #777;
   font-style: italic;
@@ -262,10 +268,12 @@ main {
 .compact-card-content .view-link {
   font-size: 0.85em; /* Smaller link text */
   color: var(--primary-color);
-  align-self: flex-start;
-  display: flex;
+  align-self: flex-start; /* Align link to the left */
+  display: inline-flex; /* Use flex for icon alignment */
   align-items: center;
   gap: 4px; /* Space between text and icon */
+  /* Remove default link padding/margin if any */
+  margin-top: auto; /* Push link to the bottom of the content area */
 }
 .compact-card-content .view-link:hover {
   text-decoration: underline;
@@ -274,13 +282,14 @@ main {
     width: 0.9em;
     height: 0.9em;
 }
-/* ------------------------------------------------ */
+/* ---------------------------------------------------- */
 
 
 /* --- List View (Detailed) --- */
 .list-view {
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .list-item {
@@ -329,6 +338,7 @@ main {
   gap: var(--gap-size);
   list-style: none;
   padding: 0;
+  margin: 0;
 }
 
 .tile-item {
@@ -348,7 +358,7 @@ main {
 
 .tile-image-container {
   width: 100%;
-  height: 180px;
+  height: 180px; /* Fixed height for uniformity */
   background-color: var(--secondary-color);
   display: flex;
   align-items: center;
@@ -360,12 +370,12 @@ main {
 .tile-image-container img {
   width: 100%;
   height: 100%;
-  object-fit: cover;
+  object-fit: cover; /* Cover and crop to fit container */
   display: block;
 }
 
 .tile-image-container .icon-placeholder {
-  color: #95a5a6;
+  color: #95a5a6; /* Muted color for icons */
   width: 40%;
   height: 40%;
 }
@@ -384,7 +394,7 @@ main {
   line-height: 1.3;
   flex-grow: 1;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 2; /* Limit title to 2 lines */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -401,7 +411,7 @@ main {
 .tile-content .view-link {
   font-size: 0.8em;
   color: var(--primary-color);
-  margin-top: auto;
+  margin-top: auto; /* Push link to bottom */
   align-self: flex-start;
 }
 .tile-content .view-link:hover {
@@ -488,12 +498,10 @@ footer {
     justify-content: center;
   }
 
-
   /* --- Compact Card View Responsive --- */
   .compact-card-item {
     flex-direction: column; /* Stack image and content on small screens */
     align-items: stretch;
-     padding: 10px 0; /* Adjust padding if needed */
   }
 
   .compact-card-image-container {
@@ -504,7 +512,6 @@ footer {
     margin-bottom: 10px; /* Add bottom margin */
   }
   /* ------------------------------------ */
-
 
   .tile-view {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -533,7 +540,7 @@ footer {
   }
 
   .tile-view {
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: 1fr 1fr; /* Two columns on small screens */
     gap: 10px;
     --gap-size: 10px;
   }
