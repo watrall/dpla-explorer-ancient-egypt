@@ -13,15 +13,20 @@
         <header>
             <h1>Ancient Egypt DPLA Viewer</h1>
             <div class="controls">
+                <!-- --- Updated Search HTML Structure --- -->
                 <div class="search-container">
-                    <input type="text" id="searchInput" placeholder="Search within results...">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="searchInput" placeholder="Search within results...">
+                        <i data-lucide="search" class="search-icon"></i>
+                    </div>
                 </div>
+                <!-- ------------------------------------- -->
                 <div class="view-toggle">
                     <button id="listViewBtn" aria-label="List View" class="view-btn active">
-                        <!-- List icon will be injected by Lucide -->
+                         <i data-lucide="list"></i>
                     </button>
                     <button id="tileViewBtn" aria-label="Tile View" class="view-btn">
-                        <!-- Grid icon will be injected by Lucide -->
+                         <i data-lucide="grid-3x3"></i>
                     </button>
                 </div>
             </div>

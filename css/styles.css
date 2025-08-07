@@ -61,40 +61,62 @@ header h1 {
   /* --------------------------- */
 }
 
+/* --- Updated Controls Layout for Centering --- */
 .controls {
   display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
+  flex-direction: column; /* Stack items vertically */
+  align-items: center; /* Center items horizontally */
   gap: 15px;
 }
+/* -------------------------------------------- */
 
-/* --- Updated Search Input Styling (Inspired by orcid-archaeologists) --- */
+
+/* --- Updated Search Container & Input Styling --- */
+/* Center the search box itself */
 .search-container {
-  flex-grow: 1; /* Allow search container to take available space */
-  max-width: 500px; /* Constrain maximum width */
+  width: 100%;
+  display: flex;
+  justify-content: center; /* Center the wrapper horizontally */
 }
-.search-container input {
-  padding: 10px 15px; /* Slightly more padding */
-  /* --- Key Change: Background Color --- */
-  background-color: #f5f5f5; /* Light gray background, similar to orcid */
-  /* ----------------------------------- */
+
+/* Wrapper for the input and icon */
+.search-input-wrapper {
+  position: relative; /* Needed for absolute positioning of the icon */
+  width: 100%;
+  max-width: 500px; /* Constrain width */
+}
+
+.search-input-wrapper input {
+  padding: 10px 15px 10px 40px; /* Add padding on the left for the icon */
+  background-color: #f5f5f5; /* Light gray background */
   border: 1px solid #ddd; /* Softer border */
   border-radius: 4px;
-  width: 100%; /* Take full width of its container */
-  font-size: 16px; /* Slightly larger font */
+  width: 100%;
+  font-size: 16px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; /* Smooth transition */
 }
 
-.search-container input:focus {
+.search-input-wrapper input:focus {
   outline: none;
   /* --- Enhanced Focus State --- */
   border-color: var(--primary-color); /* Use primary color on focus */
   box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2); /* Subtle focus ring using primary color */
-  /* --------------------------- */
   background-color: #fff; /* Background becomes white on focus */
+  /* --------------------------- */
 }
-/* ----------------------------------------------------------------------- */
+
+/* Style for the search icon */
+.search-icon {
+  position: absolute;
+  left: 12px; /* Position from the left */
+  top: 50%; /* Center vertically */
+  transform: translateY(-50%); /* Adjust for exact centering */
+  color: #999; /* Muted icon color */
+  pointer-events: none; /* Icon shouldn't interfere with input clicks */
+  width: 18px; /* Set icon size */
+  height: 18px;
+}
+/* ------------------------------------------------ */
 
 
 .view-toggle {
@@ -374,19 +396,23 @@ footer {
 /* Responsive Design */
 @media (max-width: 768px) {
   .controls {
+    /* On smaller screens, keep the column layout */
     flex-direction: column;
-    align-items: stretch;
+    align-items: stretch; /* Stretch items to fit */
   }
 
   .search-container {
-    max-width: 100%; /* On small screens, let it take full width */
+     /* On small screens, the justify-content: center on .search-container
+        combined with width 100% effectively centers the inner wrapper.
+        We might want to adjust padding or max-width here if needed. */
   }
-  .search-container input {
-    /* width: 100% is already set */
+
+  .search-input-wrapper {
+    max-width: 100%; /* Allow full width on small screens if needed */
   }
 
   .view-toggle {
-    justify-content: center;
+    justify-content: center; /* Center view toggle buttons on small screens */
   }
 
   .tile-view {
