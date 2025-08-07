@@ -13,24 +13,19 @@
         <header>
             <h1>Ancient Egypt DPLA Viewer</h1>
             <div class="controls">
-                <!-- --- Updated Search HTML Structure --- -->
-                <div class="search-container">
-                    <div class="search-input-wrapper">
-                        <input type="text" id="searchInput" placeholder="Search within results...">
-                        <i data-lucide="search" class="search-icon"></i>
-                    </div>
-                </div>
-                <!-- ------------------------------------- -->
+                <!-- --- Updated View Toggle with Correct Icons --- -->
                 <div class="view-toggle">
-                    <!-- --- Updated Icons --- -->
-                    <button id="listViewBtn" aria-label="List View" class="view-btn active">
+                    <button id="listViewBtn" aria-label="List View" class="view-btn">
                          <i data-lucide="align-justify"></i> <!-- List icon -->
+                    </button>
+                    <button id="compactCardViewBtn" aria-label="Compact Card View" class="view-btn active"> <!-- Active by default -->
+                         <i data-lucide="layout-list"></i> <!-- Compact List icon -->
                     </button>
                     <button id="tileViewBtn" aria-label="Tile View" class="view-btn">
                          <i data-lucide="layout-grid"></i> <!-- Tile/Grid icon -->
                     </button>
-                     <!-- --------------------- -->
                 </div>
+                 <!-- ------------------------------------------------- -->
             </div>
         </header>
 
@@ -45,7 +40,7 @@
             </div>
 
             <div id="contentArea">
-                <!-- List and Tile views will be rendered here -->
+                <!-- Views will be rendered here -->
             </div>
 
             <div id="paginationControls" class="pagination hidden">
