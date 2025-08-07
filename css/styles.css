@@ -69,13 +69,33 @@ header h1 {
   gap: 15px;
 }
 
-.search-container input {
-  padding: 8px 12px;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  width: 300px;
-  max-width: 100%;
+/* --- Updated Search Input Styling (Inspired by orcid-archaeologists) --- */
+.search-container {
+  flex-grow: 1; /* Allow search container to take available space */
+  max-width: 500px; /* Constrain maximum width */
 }
+.search-container input {
+  padding: 10px 15px; /* Slightly more padding */
+  /* --- Key Change: Background Color --- */
+  background-color: #f5f5f5; /* Light gray background, similar to orcid */
+  /* ----------------------------------- */
+  border: 1px solid #ddd; /* Softer border */
+  border-radius: 4px;
+  width: 100%; /* Take full width of its container */
+  font-size: 16px; /* Slightly larger font */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; /* Smooth transition */
+}
+
+.search-container input:focus {
+  outline: none;
+  /* --- Enhanced Focus State --- */
+  border-color: var(--primary-color); /* Use primary color on focus */
+  box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2); /* Subtle focus ring using primary color */
+  /* --------------------------- */
+  background-color: #fff; /* Background becomes white on focus */
+}
+/* ----------------------------------------------------------------------- */
+
 
 .view-toggle {
   display: flex;
@@ -358,8 +378,11 @@ footer {
     align-items: stretch;
   }
 
+  .search-container {
+    max-width: 100%; /* On small screens, let it take full width */
+  }
   .search-container input {
-    width: 100%;
+    /* width: 100% is already set */
   }
 
   .view-toggle {
