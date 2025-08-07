@@ -11,7 +11,9 @@ const DEMO_RECORD_COUNT = 200; // Total number of demo records to generate
 let appState = {
     allRecords: [],
     filteredRecords: [],
-    currentView: 'compact-card', // Default to Compact Card View
+    // --- Renamed View ---
+    currentView: 'compact-image', // 'list', 'compact-image', or 'tile'
+    // -------------------
     currentPage: 1,
     itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
     searchTerm: '',
@@ -22,7 +24,9 @@ let appState = {
 // --- DOM Elements ---
 const elements = {
     listViewBtn: document.getElementById('listViewBtn'),
-    compactCardViewBtn: document.getElementById('compactCardViewBtn'),
+    // --- Renamed Button Element ---
+    compactImageViewBtn: document.getElementById('compactImageViewBtn'),
+    // ----------------------------
     tileViewBtn: document.getElementById('tileViewBtn'),
     searchInput: document.getElementById('searchInput'),
     contentArea: document.getElementById('contentArea'),
@@ -84,7 +88,7 @@ function saveFullDatasetToCache(data) {
     try {
         const cacheItem = {
             timestamp: new Date().getTime(),
-             data // Store the full array directly
+             data
         };
         localStorage.setItem(FULL_DATASET_CACHE_KEY, JSON.stringify(cacheItem));
         console.log("Full dataset saved to cache.");
@@ -103,7 +107,6 @@ function loadFullDatasetFromCache() {
         const cachedItem = JSON.parse(cachedItemString);
         if (isCacheValid(cachedItem)) {
             console.log("Loaded full dataset from cache.");
-            // Return the data array directly, as that's what we stored
             return cachedItem.data;
         } else {
             console.log("Cached dataset expired, removing.");
@@ -128,7 +131,6 @@ async function fetchFullDplaDataset() {
     setLoading(true);
     setError(false);
 
-    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
@@ -224,18 +226,33 @@ function renderTileView(records) {
     lucide.createIcons();
 }
 
-// --- Compact Card View Rendering Function ---
-function renderCompactCardView(records) {
+// --- Renamed and Updated Compact Image View Rendering Function ---
+function renderCompactImageView(records) {
     const listElement = document.createElement('ul');
-    listElement.className = 'compact-card-view';
+    listElement.className = 'compact-image-view';
+
+    // Add header row
+    const headerRow = document.createElement('li');
+    headerRow.className = 'compact-image-header';
+    headerRow.innerHTML = `
+        <div class="civ-col-image"></div> <!-- Empty header for image column -->
+        <div class="civ-col-title">Title</div>
+        <div class="civ-col-description">Description</div>
+        <div class="civ-col-date">Date Added</div>
+        <div class="civ-col-institution">Institution</div>
+        <div class="civ-col-link"></div> <!-- Empty header for link column -->
+    `;
+    listElement.appendChild(headerRow);
 
     records.forEach(record => {
         const itemElement = document.createElement('li');
-        itemElement.className = 'compact-card-item';
+        itemElement.className = 'compact-image-item';
 
         const title = record.sourceResource?.title?.[0] || 'Untitled';
+        // Use full description for compact view
         const description = record.sourceResource?.description?.[0] || 'No description available.';
-        const provider = record.provider?.name || 'Unknown Provider';
+        // Use provider.name as Partner Institution
+        const institution = record.provider?.name || 'Unknown Institution';
         const linkUrl = record.isShownAt || '#';
         const imageUrl = record.object;
         const resourceType = record.sourceResource?.type?.[0]?.toLowerCase() || 'unknown';
@@ -255,19 +272,31 @@ function renderCompactCardView(records) {
             imageHtml = `<i data-lucide="${iconName}" class="icon-placeholder"></i>`;
         }
 
-        // Truncate description for compact card view
-        const truncatedDescription = description.length > 150 ? description.substring(0, 150) + '...' : description;
+        // --- Simulate Date Added ---
+        // In a real app, this would come from the DPLA record (e.g., record.timestamp or similar)
+        // For demo, we'll generate a plausible date within the last few years.
+        const randomDaysAgo = Math.floor(Math.random() * 365 * 3); // Up to 3 years ago
+        const dateAdded = new Date();
+        dateAdded.setDate(dateAdded.getDate() - randomDaysAgo);
+        const formattedDate = dateAdded.toLocaleDateString('en-US', {
+            year: 'numeric',
+            month: 'short',
+            day: 'numeric'
+        });
+        // --------------------------
 
         itemElement.innerHTML = `
-            <div class="compact-card-image-container">
-                ${imageHtml}
+            <div class="civ-col-image">
+                <div class="civ-image-container">
+                    ${imageHtml}
+                </div>
             </div>
-            <div class="compact-card-content">
-                <h3>${title}</h3>
-                <p class="description">${truncatedDescription}</p>
-                <p class="provider">Provider: ${provider}</p>
-                <a href="${linkUrl}" target="_blank" class="view-link">
-                    View Record
+            <div class="civ-col-title">${title}</div>
+            <div class="civ-col-description">${description}</div>
+            <div class="civ-col-date">${formattedDate}</div>
+            <div class="civ-col-institution">${institution}</div>
+            <div class="civ-col-link">
+                <a href="${linkUrl}" target="_blank" aria-label="View Record on DPLA">
                     <i data-lucide="square-arrow-out-up-right"></i>
                 </a>
             </div>
@@ -281,7 +310,7 @@ function renderCompactCardView(records) {
     // Initialize Lucide icons for the newly added elements (including placeholders and link icons)
     lucide.createIcons();
 }
-// -------------------------------------------------
+// ---------------------------------------------------------------------
 
 
 function updatePaginationControls(totalRecords) {
@@ -308,9 +337,11 @@ function renderCurrentView() {
         renderListView(recordsToShow);
     } else if (appState.currentView === 'tile') {
         renderTileView(recordsToShow);
-    } else if (appState.currentView === 'compact-card') {
-        renderCompactCardView(recordsToShow);
+    // --- Updated View Check ---
+    } else if (appState.currentView === 'compact-image') {
+        renderCompactImageView(recordsToShow);
     }
+    // ------------------------
     updatePaginationControls(appState.filteredRecords.length);
 }
 
@@ -318,19 +349,19 @@ function renderCurrentView() {
 // --- Event Handlers ---
 
 function setupEventListeners() {
-    // --- Corrected View Toggle Logic ---
+    // --- Updated View Toggle Logic ---
     function setView(viewName) {
         appState.currentView = viewName;
 
         // Ensure ONLY the correct button is active
         elements.listViewBtn.classList.remove('active');
-        elements.compactCardViewBtn.classList.remove('active');
+        elements.compactImageViewBtn.classList.remove('active'); // Updated ID
         elements.tileViewBtn.classList.remove('active');
 
         if (viewName === 'list') {
             elements.listViewBtn.classList.add('active');
-        } else if (viewName === 'compact-card') {
-            elements.compactCardViewBtn.classList.add('active');
+        } else if (viewName === 'compact-image') { // Updated name
+            elements.compactImageViewBtn.classList.add('active'); // Updated ID
         } else if (viewName === 'tile') {
             elements.tileViewBtn.classList.add('active');
         }
@@ -339,7 +370,9 @@ function setupEventListeners() {
     }
 
     elements.listViewBtn.addEventListener('click', () => setView('list'));
-    elements.compactCardViewBtn.addEventListener('click', () => setView('compact-card'));
+    // --- Updated Event Listener ---
+    elements.compactImageViewBtn.addEventListener('click', () => setView('compact-image'));
+    // ----------------------------
     elements.tileViewBtn.addEventListener('click', () => setView('tile'));
     // ---------------------------------
 
@@ -402,7 +435,9 @@ async function initApp() {
 
     // --- Ensure Correct Button is Active on Load ---
     elements.listViewBtn.classList.remove('active');
-    elements.compactCardViewBtn.classList.add('active'); // Set Compact Card View button as active by default
+    // --- Updated Initial Active Button ---
+    elements.compactImageViewBtn.classList.add('active'); // Set Compact Image View button as active by default
+    // -----------------------------------
     elements.tileViewBtn.classList.remove('active');
     // ----------------------------------------------
 
@@ -428,7 +463,13 @@ async function initApp() {
 // --- Demo Data Generator (MVP Placeholder) ---
 function generateDemoData(count) {
     const types = ['image', 'text', 'physical object', 'moving image', 'sound', 'dataset'];
-    const providers = ['Internet Archive', 'Smithsonian Institution', 'New York Public Library', 'Library of Congress', 'British Museum'];
+    // Expanded list of institutions for variety
+    const providers = [
+        'Internet Archive', 'Smithsonian Institution', 'New York Public Library',
+        'Library of Congress', 'British Museum', 'Metropolitan Museum of Art',
+        'Getty Research Institute', 'Harvard University', 'Yale University',
+        'University of California Libraries', 'Digital Public Library of America'
+    ];
     const titles = [
         "The Great Pyramid of Giza", "Tutankhamun's Tomb", "Hieroglyphics Decoded",
         "Papyrus of Ani", "Temple of Karnak", "Valley of the Kings Map",
@@ -436,7 +477,10 @@ function generateDemoData(count) {
         "Ancient Egyptian Pottery", "Pharaoh Ramesses II Statue", "Nile River Flood Cycle",
         "Book of the Dead Scroll", "Canopic Jars", "Egyptian Chariot Model",
         "Obelisk of Heliopolis", "Temple of Abu Simbel", "Cartouche of Cleopatra",
-        "Egyptian Solar Barque", "Mortuary Temple of Hatshepsut"
+        "Egyptian Solar Barque", "Mortuary Temple of Hatshepsut",
+        "Tomb of Seti I", "Dendera Zodiac", "Colossi of Memnon", "Temple of Hatshepsut",
+        "Egyptian Book of the Dead", "Amarna Period Artifacts", "Pyramid of Djoser",
+        "Temple of Luxor", "Egyptian Sarcophagus", "Ancient Egyptian Jewelry"
     ];
     const descriptions = [
         "A detailed study of the construction techniques used in the Great Pyramid.",
@@ -458,7 +502,17 @@ function generateDemoData(count) {
         "Panoramic view of the rock-cut temples of Abu Simbel before relocation.",
         "Inscription of Cleopatra VII's royal cartouche found on a temple wall.",
         "Reconstruction of the mythical solar barque used by Ra in Egyptian mythology.",
-        "Ruins of the mortuary temple built for Queen Hatshepsut at Deir el-Bahri."
+        "Ruins of the mortuary temple built for Queen Hatshepsut at Deir el-Bahri.",
+        "Excavation report and photographs from the tomb of Seti I in the Valley of the Kings.",
+        "Detailed astronomical map of the zodiac ceiling from the Temple of Dendera.",
+        "Photographs and drawings of the two massive stone statues of Pharaoh Amenhotep III.",
+        "Architectural drawings and historical context of the mortuary temple of Hatshepsut.",
+        "Digital facsimile and commentary on the Egyptian Book of the Dead papyri.",
+        "Artifacts and analysis from the Amarna period, showcasing Akhenaten's religious reforms.",
+        "Archaeological report on the Step Pyramid of Djoser, the world's oldest stone pyramid.",
+        "Historical documentation and images of the Temple of Luxor and its obelisks.",
+        "Detailed examination of an ancient Egyptian sarcophagus and its inscriptions.",
+        "Catalog of ancient Egyptian jewelry, including pieces from royal tombs."
     ];
 
     const data = [];
@@ -469,7 +523,7 @@ function generateDemoData(count) {
         const description = descriptions[Math.floor(Math.random() * descriptions.length)];
 
         const hasImage = Math.random() > 0.2;
-        const imageUrl = hasImage ? `https://picsum.photos/seed/egypt${i}/300/200` : null;
+        const imageUrl = hasImage ? `https://picsum.photos/seed/egypt${i}/150/100` : null; // Smaller image for list view
 
         data.push({
             id: `demo-record-${i}`,

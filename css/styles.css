@@ -13,6 +13,11 @@
   --tile-width: 220px;
   --tile-height: 280px;
   --gap-size: 20px;
+  /* --- Compact Image View Colors --- */
+  --civ-header-bg: #f0f0f0; /* Light gray header background */
+  --civ-row-hover: #f9f9f9; /* Subtle hover background */
+  --civ-border: #e0e0e0;    /* Light border */
+  /* --------------------------------- */
 }
 
 * {
@@ -78,33 +83,30 @@ header h1 {
 }
 
 .search-input-wrapper input {
-  padding: 10px 15px 10px 40px; /* Add padding on the left for the icon */
-  background-color: #f5f5f5; /* Light gray background */
-  border: 1px solid #ddd; /* Softer border */
+  padding: 10px 15px 10px 40px;
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
   border-radius: 4px;
   width: 100%;
   font-size: 16px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease; /* Smooth transition */
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
 .search-input-wrapper input:focus {
   outline: none;
-  /* --- Focus State --- */
-  border-color: var(--primary-color); /* Use primary color on focus */
-  box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2); /* Subtle focus ring using primary color */
-  background-color: #fff; /* Background becomes white on focus */
-  /* ------------------ */
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2);
+  background-color: #fff;
 }
 
-/* Style for the search icon */
 .search-icon {
   position: absolute;
-  left: 12px; /* Position from the left */
-  top: 50%; /* Center vertically */
-  transform: translateY(-50%); /* Adjust for exact centering */
-  color: #999; /* Muted icon color */
-  pointer-events: none; /* Icon shouldn't interfere with input clicks */
-  width: 18px; /* Set icon size */
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+  width: 18px;
   height: 18px;
 }
 /* -------------------------------------------------------------------------- */
@@ -124,10 +126,12 @@ header h1 {
   display: flex;
   align-items: center;
   justify-content: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease; /* Subtle transition */
 }
 
 .view-btn:hover {
   background-color: var(--secondary-color);
+  border-color: #95a5a6; /* Slightly darker border on hover */
 }
 
 .view-btn.active {
@@ -184,103 +188,169 @@ main {
 }
 
 
-/* --- Compact Card View (List-like with Thumbnail) --- */
-.compact-card-view {
+/* --- Compact Image View (List-like with Columns) --- */
+.compact-image-view {
   list-style: none;
   padding: 0;
   margin: 0;
+  border: 1px solid var(--civ-border);
+  border-radius: 4px;
+  overflow: hidden; /* Contain child borders */
 }
 
-.compact-card-item {
+.compact-image-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: var(--civ-header-bg);
+  font-weight: 600;
+  font-size: 0.9em;
+  border-bottom: 1px solid var(--civ-border);
+}
+
+.compact-image-header .civ-col-image {
+  flex: 0 0 60px; /* Fixed width for image column */
+  padding-right: 10px;
+}
+
+.compact-image-header .civ-col-title {
+  flex: 2; /* Title gets more space */
+  padding: 0 10px;
+}
+
+.compact-image-header .civ-col-description {
+  flex: 3; /* Description gets the most space */
+  padding: 0 10px;
+}
+
+.compact-image-header .civ-col-date {
+  flex: 0 0 120px; /* Fixed width for date */
+  padding: 0 10px;
+  text-align: center;
+}
+
+.compact-image-header .civ-col-institution {
+  flex: 1; /* Institution gets less space */
+  padding: 0 10px;
+  text-align: center;
+}
+
+.compact-image-header .civ-col-link {
+  flex: 0 0 40px; /* Fixed width for link icon */
+  padding-left: 10px;
+  text-align: center;
+}
+
+.compact-image-item {
   display: flex;
   align-items: flex-start; /* Align items to the top */
-  padding: 12px 0; /* Padding top and bottom */
-  border-bottom: 1px solid var(--border-color); /* Subtle separator */
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--civ-border);
+  transition: background-color 0.2s ease; /* Subtle hover transition */
 }
 
-.compact-card-item:last-child {
+.compact-image-item:last-child {
   border-bottom: none;
 }
 
-.compact-card-item:hover {
-  background-color: #f9f9f9; /* Subtle hover background */
+.compact-image-item:hover {
+  background-color: var(--civ-row-hover);
 }
 
-.compact-card-image-container {
-  width: 80px; /* Fixed width for thumbnail */
-  height: 80px; /* Fixed height for thumbnail */
-  min-width: 80px; /* Prevent shrinking */
-  background-color: var(--secondary-color);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  overflow: hidden;
-  /* No border-radius or shadow for a flat list look */
-  margin-right: 15px; /* Space between image and text */
+.compact-image-item .civ-col-image {
+  flex: 0 0 60px;
+  padding-right: 10px;
 }
 
-.compact-card-image-container img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover; /* Cover and crop to fit container */
-  display: block;
-}
-
-.compact-card-image-container .icon-placeholder {
-  color: #95a5a6; /* Muted color for icons */
-  width: 60%; /* Slightly smaller than container */
-  height: 60%;
-}
-
-.compact-card-content {
-  flex: 1; /* Take remaining space */
-  display: flex;
-  flex-direction: column;
-  /* Reduce default paragraph margins for tighter spacing */
-}
-
-.compact-card-content h3 {
-  margin: 0 0 6px 0; /* Reduced top/bottom margins */
-  font-size: 1em; /* Standard title size */
+.compact-image-item .civ-col-title {
+  flex: 2;
+  padding: 0 10px;
   font-weight: 500;
-  line-height: 1.3;
+  font-size: 0.95em;
 }
 
-.compact-card-content p.description {
-  margin: 0 0 6px 0; /* Reduced margins */
-  font-size: 0.9em; /* Smaller description */
+.compact-image-item .civ-col-description {
+  flex: 3;
+  padding: 0 10px;
+  font-size: 0.9em;
   color: #555;
-  line-height: 1.4; /* Tighter line height */
-  flex-grow: 1;
   display: -webkit-box;
   -webkit-line-clamp: 2; /* Limit description to 2 lines */
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
 
-.compact-card-content p.provider {
-  margin: 0 0 6px 0; /* Reduced margin */
-  font-size: 0.85em; /* Smaller provider text */
+.compact-image-item .civ-col-date {
+  flex: 0 0 120px;
+  padding: 0 10px;
+  font-size: 0.85em;
   color: #777;
-  font-style: italic;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.compact-card-content .view-link {
-  font-size: 0.85em; /* Smaller link text */
-  color: var(--primary-color);
-  align-self: flex-start; /* Align link to the left */
-  display: inline-flex; /* Use flex for icon alignment */
+.compact-image-item .civ-col-institution {
+  flex: 1;
+  padding: 0 10px;
+  font-size: 0.85em;
+  color: #777;
+  font-style: italic;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-image-item .civ-col-link {
+  flex: 0 0 40px;
+  padding-left: 10px;
+  display: flex;
   align-items: center;
-  gap: 4px; /* Space between text and icon */
-  /* Remove default link padding/margin if any */
-  margin-top: auto; /* Push link to the bottom of the content area */
+  justify-content: center;
 }
-.compact-card-content .view-link:hover {
-  text-decoration: underline;
+
+.compact-image-item .civ-col-link a {
+  color: var(--primary-color);
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease; /* Subtle icon transitions */
 }
-.compact-card-content .view-link i { /* Style the link icon */
-    width: 0.9em;
-    height: 0.9em;
+
+.compact-image-item .civ-col-link a:hover {
+  opacity: 1;
+  transform: translateY(-1px); /* Slight lift on hover */
+  text-decoration: none;
+}
+
+.compact-image-item .civ-col-link a i {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+/* Image Container within Compact Image View */
+.civ-image-container {
+  width: 100%;
+  height: 60px; /* Match header column height */
+  background-color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 3px; /* Slight rounding */
+}
+
+.civ-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.civ-image-container .icon-placeholder {
+  color: #95a5a6;
+  width: 60%;
+  height: 60%;
 }
 /* ---------------------------------------------------- */
 
@@ -349,16 +419,17 @@ main {
   flex-direction: column;
   background-color: #fff;
   box-shadow: var(--shadow);
-  transition: box-shadow 0.2s ease;
+  transition: box-shadow 0.2s ease, transform 0.2s ease; /* Subtle tile transitions */
 }
 
 .tile-item:hover {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px); /* Slight lift on hover */
 }
 
 .tile-image-container {
   width: 100%;
-  height: 180px; /* Fixed height for uniformity */
+  height: 180px;
   background-color: var(--secondary-color);
   display: flex;
   align-items: center;
@@ -370,12 +441,12 @@ main {
 .tile-image-container img {
   width: 100%;
   height: 100%;
-  object-fit: cover; /* Cover and crop to fit container */
+  object-fit: cover;
   display: block;
 }
 
 .tile-image-container .icon-placeholder {
-  color: #95a5a6; /* Muted color for icons */
+  color: #95a5a6;
   width: 40%;
   height: 40%;
 }
@@ -394,7 +465,7 @@ main {
   line-height: 1.3;
   flex-grow: 1;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Limit title to 2 lines */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -411,7 +482,7 @@ main {
 .tile-content .view-link {
   font-size: 0.8em;
   color: var(--primary-color);
-  margin-top: auto; /* Push link to bottom */
+  margin-top: auto;
   align-self: flex-start;
 }
 .tile-content .view-link:hover {
@@ -453,6 +524,7 @@ main {
   border-radius: 4px;
   background-color: #fff;
   cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease; /* Subtle button transition */
 }
 
 .page-navigation button:disabled {
@@ -463,6 +535,7 @@ main {
 
 .page-navigation button:hover:not(:disabled) {
   background-color: var(--secondary-color);
+  border-color: #95a5a6;
 }
 
 #pageInfo {
@@ -498,20 +571,40 @@ footer {
     justify-content: center;
   }
 
-  /* --- Compact Card View Responsive --- */
-  .compact-card-item {
-    flex-direction: column; /* Stack image and content on small screens */
+  /* --- Compact Image View Responsive --- */
+  /* On small screens, stack columns vertically or simplify */
+  .compact-image-header,
+  .compact-image-item {
+    flex-direction: column;
     align-items: stretch;
   }
 
-  .compact-card-image-container {
+  .compact-image-header > div,
+  .compact-image-item > div {
+    padding: 5px 0;
+    text-align: left;
+    flex: none; /* Reset flex properties */
     width: 100%;
-    height: 150px; /* Adjust height for mobile */
-    min-width: 100%;
-    margin-right: 0; /* Remove right margin */
-    margin-bottom: 10px; /* Add bottom margin */
+  }
+
+  .compact-image-header .civ-col-image,
+  .compact-image-item .civ-col-image {
+    order: -1; /* Move image to the top */
+    padding-bottom: 10px;
+  }
+
+  .civ-image-container {
+    width: 100%;
+    height: 150px;
+  }
+
+  .compact-image-header .civ-col-link,
+  .compact-image-item .civ-col-link {
+    text-align: left;
+    padding-top: 10px;
   }
   /* ------------------------------------ */
+
 
   .tile-view {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
@@ -540,7 +633,7 @@ footer {
   }
 
   .tile-view {
-    grid-template-columns: 1fr 1fr; /* Two columns on small screens */
+    grid-template-columns: 1fr 1fr;
     gap: 10px;
     --gap-size: 10px;
   }
