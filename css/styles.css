@@ -2,9 +2,9 @@
 
 /* Base Styles & Reset */
 :root {
-  /* --- Updated Primary Color --- */
+  /* --- Primary Color --- */
   --primary-color: #03738C; /* New primary color */
-  /* ----------------------------- */
+  /* -------------------- */
   --secondary-color: #ecf0f1; /* Light gray background */
   --accent-color: #3498db; /* Blue accent */
   --text-color: #333;
@@ -31,9 +31,9 @@ body {
 }
 
 a {
-  /* --- Updated Link Color --- */
+  /* --- Link Color --- */
   color: var(--primary-color); /* Use primary color for links */
-  /* ------------------------ */
+  /* ----------------- */
   text-decoration: none;
 }
 
@@ -56,22 +56,22 @@ header {
 header h1 {
   margin-bottom: 20px;
   font-weight: 300;
-  /* --- Updated Header Color --- */
+  /* --- Header Color --- */
   color: var(--primary-color); /* Use primary color for title */
-  /* --------------------------- */
+  /* ------------------- */
 }
 
-/* --- Updated Controls Layout for Centering --- */
+/* --- Controls Layout for Centering --- */
 .controls {
   display: flex;
   flex-direction: column; /* Stack items vertically */
   align-items: center; /* Center items horizontally */
   gap: 15px;
 }
-/* -------------------------------------------- */
+/* ------------------------------------ */
 
 
-/* --- Updated Search Container & Input Styling --- */
+/* --- Search Container & Input Styling --- */
 /* Center the search box itself */
 .search-container {
   width: 100%;
@@ -98,11 +98,11 @@ header h1 {
 
 .search-input-wrapper input:focus {
   outline: none;
-  /* --- Enhanced Focus State --- */
+  /* --- Focus State --- */
   border-color: var(--primary-color); /* Use primary color on focus */
   box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2); /* Subtle focus ring using primary color */
   background-color: #fff; /* Background becomes white on focus */
-  /* --------------------------- */
+  /* ------------------ */
 }
 
 /* Style for the search icon */
@@ -116,7 +116,7 @@ header h1 {
   width: 18px; /* Set icon size */
   height: 18px;
 }
-/* ------------------------------------------------ */
+/* --------------------------------------- */
 
 
 .view-toggle {
@@ -139,13 +139,13 @@ header h1 {
   background-color: var(--secondary-color);
 }
 
-/* --- Updated Active Button State --- */
+/* --- Active Button State --- */
 .view-btn.active {
   background-color: var(--primary-color); /* Use new primary */
   color: white;
   border-color: var(--primary-color); /* Use new primary */
 }
-/* ---------------------------------- */
+/* -------------------------- */
 
 /* Ensure Lucide icons in view toggle buttons are sized correctly */
 .view-toggle .view-btn i {
@@ -171,7 +171,7 @@ main {
   display: none;
 }
 
-/* --- Updated Spinner Color --- */
+/* --- Spinner Color --- */
 .spinner {
   border: 4px solid rgba(0, 0, 0, 0.1);
   border-left-color: var(--primary-color); /* Use new primary */
@@ -181,7 +181,7 @@ main {
   animation: spin 1s linear infinite;
   margin: 0 auto 15px;
 }
-/* ---------------------------- */
+/* -------------------- */
 
 @keyframes spin {
   to {
@@ -231,7 +231,7 @@ main {
   font-size: 0.9em;
 }
 
-/* --- Updated List View Link Color --- */
+/* --- List View Link Color --- */
 .list-item .view-link {
   display: inline-block;
   margin-top: 8px;
@@ -241,7 +241,7 @@ main {
 .list-item .view-link:hover {
   text-decoration: underline;
 }
-/* ------------------------------------ */
+/* --------------------------- */
 
 
 /* Tile View */
@@ -320,7 +320,7 @@ main {
   text-overflow: ellipsis;
 }
 
-/* --- Updated Tile View Link Color --- */
+/* --- Tile View Link Color --- */
 .tile-content .view-link {
   font-size: 0.8em;
   color: var(--primary-color); /* Use primary color */
@@ -330,7 +330,7 @@ main {
 .tile-content .view-link:hover {
   text-decoration: underline;
 }
-/* ----------------------------------- */
+/* -------------------------- */
 
 
 /* Pagination */
@@ -403,12 +403,11 @@ footer {
 
   .search-container {
      /* On small screens, the justify-content: center on .search-container
-        combined with width 100% effectively centers the inner wrapper.
-        We might want to adjust padding or max-width here if needed. */
+        combined with width 100% effectively centers the inner wrapper. */
   }
 
   .search-input-wrapper {
-    max-width: 100%; /* Allow full width on small screens if needed */
+    max-width: 100%; /* Allow full width on small screens */
   }
 
   .view-toggle {
