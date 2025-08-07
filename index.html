@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ancient Egypt DPLA Viewer</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <!-- Lucide Icons (using CDN for simplicity) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Ancient Egypt DPLA Viewer</h1>
+            <div class="controls">
+                <div class="search-container">
+                    <input type="text" id="searchInput" placeholder="Search within results...">
+                </div>
+                <div class="view-toggle">
+                    <button id="listViewBtn" aria-label="List View" class="view-btn active">
+                        <!-- List icon will be injected by Lucide -->
+                    </button>
+                    <button id="tileViewBtn" aria-label="Tile View" class="view-btn">
+                        <!-- Grid icon will be injected by Lucide -->
+                    </button>
+                </div>
+            </div>
+        </header>
+
+        <main>
+            <div id="loadingSpinner" class="loading hidden">
+                <div class="spinner"></div>
+                <p>Loading records...</p>
+            </div>
+
+            <div id="errorMessage" class="error hidden">
+                <p>An error occurred. Please try again later.</p>
+            </div>
+
+            <div id="contentArea">
+                <!-- List and Tile views will be rendered here -->
+            </div>
+
+            <div id="paginationControls" class="pagination hidden">
+                <div class="items-per-page">
+                    <label for="itemsPerPage">Items per page:</label>
+                    <select id="itemsPerPage">
+                        <option value="10">10</option>
+                        <option value="20" selected>20</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                    </select>
+                </div>
+                <div class="page-navigation">
+                    <button id="prevPageBtn" aria-label="Previous Page">Previous</button>
+                    <span id="pageInfo">Page <span id="currentPageNum">1</span> of <span id="totalPagesNum">1</span></span>
+                    <button id="nextPageBtn" aria-label="Next Page">Next</button>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>made with love by Ethan Watrall using the <a href="https://dp.la/" target="_blank">DPLA</a> <a href="https://pro.dp.la/developers" target="_blank">API</a></p>
+        </footer>
+    </div>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
