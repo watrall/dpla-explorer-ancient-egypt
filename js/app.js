@@ -11,9 +11,9 @@ const DEMO_RECORD_COUNT = 200; // Total number of demo records to generate
 let appState = {
     allRecords: [],
     filteredRecords: [],
-    // --- Renamed View ---
-    currentView: 'compact-image', // 'list', 'compact-image', or 'tile'
-    // -------------------
+    // --- Updated Default View ---
+    currentView: 'tile', // 'list', 'compact-image', or 'tile'
+    // ------------------
     currentPage: 1,
     itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
     searchTerm: '',
@@ -24,9 +24,7 @@ let appState = {
 // --- DOM Elements ---
 const elements = {
     listViewBtn: document.getElementById('listViewBtn'),
-    // --- Renamed Button Element ---
     compactImageViewBtn: document.getElementById('compactImageViewBtn'),
-    // ----------------------------
     tileViewBtn: document.getElementById('tileViewBtn'),
     searchInput: document.getElementById('searchInput'),
     contentArea: document.getElementById('contentArea'),
@@ -337,11 +335,9 @@ function renderCurrentView() {
         renderListView(recordsToShow);
     } else if (appState.currentView === 'tile') {
         renderTileView(recordsToShow);
-    // --- Updated View Check ---
     } else if (appState.currentView === 'compact-image') {
         renderCompactImageView(recordsToShow);
     }
-    // ------------------------
     updatePaginationControls(appState.filteredRecords.length);
 }
 
@@ -355,13 +351,13 @@ function setupEventListeners() {
 
         // Ensure ONLY the correct button is active
         elements.listViewBtn.classList.remove('active');
-        elements.compactImageViewBtn.classList.remove('active'); // Updated ID
+        elements.compactImageViewBtn.classList.remove('active');
         elements.tileViewBtn.classList.remove('active');
 
         if (viewName === 'list') {
             elements.listViewBtn.classList.add('active');
-        } else if (viewName === 'compact-image') { // Updated name
-            elements.compactImageViewBtn.classList.add('active'); // Updated ID
+        } else if (viewName === 'compact-image') {
+            elements.compactImageViewBtn.classList.add('active');
         } else if (viewName === 'tile') {
             elements.tileViewBtn.classList.add('active');
         }
@@ -370,9 +366,7 @@ function setupEventListeners() {
     }
 
     elements.listViewBtn.addEventListener('click', () => setView('list'));
-    // --- Updated Event Listener ---
     elements.compactImageViewBtn.addEventListener('click', () => setView('compact-image'));
-    // ----------------------------
     elements.tileViewBtn.addEventListener('click', () => setView('tile'));
     // ---------------------------------
 
@@ -433,20 +427,19 @@ async function initApp() {
 
     setupEventListeners();
 
-    // --- Ensure Correct Button is Active on Load ---
-    elements.listViewBtn.classList.remove('active');
     // --- Updated Initial Active Button ---
-    elements.compactImageViewBtn.classList.add('active'); // Set Compact Image View button as active by default
-    // -----------------------------------
-    elements.tileViewBtn.classList.remove('active');
-    // ----------------------------------------------
+    // Ensure the correct button is active on load based on the default view
+    elements.listViewBtn.classList.remove('active');
+    elements.compactImageViewBtn.classList.remove('active');
+    elements.tileViewBtn.classList.add('active'); // Set Tile View button as active by default
+    // ------------------------------------
 
     const fullDataset = await fetchFullDplaDataset();
 
     if (fullDataset && Array.isArray(fullDataset)) {
         appState.allRecords = fullDataset;
         appState.filteredRecords = [...appState.allRecords];
-        renderCurrentView();
+        renderCurrentView(); // This will now render the 'tile' view by default
         showElement(elements.contentArea);
         console.log("Application initialized successfully with demo data.");
     } else if (!appState.hasError && !appState.isLoading) {
