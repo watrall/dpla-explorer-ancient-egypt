@@ -1,179 +1,836 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>DPLA Explorer: Ancient Egypt</title>
-    <!-- Import Lora Font -->
-    <link href="https://fonts.googleapis.com/css2?family=Lora:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/styles.css">
-    <!-- Custom styles for specific elements like the footer icon -->
-    <style>
-        .footer-heart-icon {
-            width: 1em;
-            height: 1em;
-            color: red;
-            display: inline-block;
-            vertical-align: middle;
-            margin: 0 0.2em;
-        }
-    </style>
-    <script src="https://unpkg.com/lucide@latest"></script>
-</head>
-<body>
-    <div class="hero-header">
-        <div class="overlay"></div>
-        <div class="hero-content">
-            <h1>DPLA Explorer: Ancient Egypt</h1>
-            <p>Explore Ancient Egypt from the 52,481,577 images, texts, videos, and sounds in the Digital Public Library of America</p>
-        </div>
-    </div>
+/* css/styles.css */
 
-    <div class="container">
-        <main>
-            <!-- --- New Toolbar for Search, Filters and View Toggles --- -->
-            <div class="toolbar">
-                <!-- Search Bar -->
-                <div class="search-container">
-                    <div class="search-input-wrapper">
-                        <input type="text" id="searchInput" placeholder="Search within results...">
-                        <i data-lucide="search" class="search-icon"></i>
-                    </div>
-                </div>
+:root {
+  --primary-color: #03738C;
+  --secondary-color: #ecf0f1;
+  --accent-color: #3498db;
+  --text-color: #333;
+  --border-color: #bdc3c7;
+  --shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  --tile-width: 220px;
+  --tile-height: 280px;
+  --gap-size: 20px;
+  --civ-header-bg: #f0f0f0;
+  --civ-row-hover: #f9f9f9;
+  --civ-border: #e0e0e0;
+  --filter-bg: #f8f9fa;
+  --filter-border: #dee2e6;
+  --dropdown-bg: #ffffff;
+  --dropdown-border: #bdc3c7;
+  --dropdown-hover-bg: #e9ecef;
+}
 
-                <!-- Faceted Filters -->
-                <div class="filters">
-                    <!-- Type Filter Custom Dropdown -->
-                    <div class="custom-dropdown" id="typeFilterContainer">
-                        <button class="dropdown-button" type="button" aria-haspopup="listbox" aria-expanded="false">
-                            Select Types...
-                        </button>
-                        <ul class="dropdown-menu" role="listbox" aria-multiselectable="true">
-                            <!-- Options will be populated by JS -->
-                        </ul>
-                        <!-- Hidden select to potentially capture state if needed by other parts -->
-                        <select id="typeFilter" multiple style="display:none;">
-                            <!-- Options will be mirrored by JS -->
-                        </select>
-                    </div>
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
 
-                    <!-- Institution Filter Custom Dropdown -->
-                    <div class="custom-dropdown" id="institutionFilterContainer">
-                        <button class="dropdown-button" type="button" aria-haspopup="listbox" aria-expanded="false">
-                            Select Institutions...
-                        </button>
-                        <ul class="dropdown-menu" role="listbox" aria-multiselectable="true">
-                            <!-- Options will be populated by JS -->
-                        </ul>
-                        <!-- Hidden select to potentially capture state -->
-                        <select id="institutionFilter" multiple style="display:none;">
-                            <!-- Options will be mirrored by JS -->
-                        </select>
-                    </div>
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  line-height: 1.6;
+  color: var(--text-color);
+  background-color: #fff;
+  padding: 0;
+  margin: 0;
+}
 
-                    <!-- Date Filter Custom Dropdown (Single Select) -->
-                    <div class="custom-dropdown" id="dateFilterContainer">
-                        <button class="dropdown-button" type="button" aria-haspopup="listbox" aria-expanded="false">
-                            All Dates
-                        </button>
-                        <ul class="dropdown-menu" role="listbox" aria-multiselectable="false">
-                            <li>
-                                <label>
-                                    <input type="radio" name="dateFilterGroup" value=""> All Dates
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    <input type="radio" name="dateFilterGroup" value="before-1800"> Before 1800
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    <input type="radio" name="dateFilterGroup" value="1800-1900"> 1800-1900
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    <input type="radio" name="dateFilterGroup" value="1900-1950"> 1900-1950
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    <input type="radio" name="dateFilterGroup" value="1950-2000"> 1950-2000
-                                </label>
-                            </li>
-                            <li>
-                                <label>
-                                    <input type="radio" name="dateFilterGroup" value="after-2000"> After 2000
-                                </label>
-                            </li>
-                        </ul>
-                        <!-- Hidden select for date filter -->
-                        <select id="dateFilter" style="display:none;">
-                            <option value="">All Dates</option>
-                            <option value="before-1800">Before 1800</option>
-                            <option value="1800-1900">1800-1900</option>
-                            <option value="1900-1950">1900-1950</option>
-                            <option value="1950-2000">1950-2000</option>
-                            <option value="after-2000">After 2000</option>
-                        </select>
-                    </div>
+a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
 
-                    <button id="clearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
-                </div>
+a:hover {
+  text-decoration: underline;
+}
 
-                <!-- View Toggle Buttons -->
-                <div class="view-toggle">
-                    <button id="listViewBtn" aria-label="List View" class="view-btn">
-                         <i data-lucide="align-justify"></i>
-                    </button>
-                    <button id="compactImageViewBtn" aria-label="Compact Image View" class="view-btn">
-                         <i data-lucide="layout-list"></i>
-                    </button>
-                    <button id="tileViewBtn" aria-label="Tile View" class="view-btn">
-                         <i data-lucide="layout-grid"></i>
-                    </button>
-                </div>
-            </div>
-            <!-- ---------------------------------------------------- -->
+.hero-header {
+  position: relative;
+  background-image: url('../assets/background.jpg');
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 400px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-family: 'Lora', serif;
+}
 
-            <div id="loadingSpinner" class="loading hidden">
-                <div class="spinner"></div>
-                <p>Loading records...</p>
-            </div>
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5);
+}
 
-            <div id="errorMessage" class="error hidden">
-                <p>An error occurred. Please try again later.</p>
-            </div>
+.hero-content {
+  z-index: 1;
+  color: white;
+  max-width: 1200px;
+  padding: 0 20px;
+  margin: 0 auto;
+}
 
-            <div id="contentArea">
-                <!-- Views will be rendered here -->
-            </div>
+.hero-content h1 {
+  font-weight: 700;
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  line-height: 1.2;
+}
 
-            <div id="paginationControls" class="pagination hidden">
-                <div class="items-per-page">
-                    <label for="itemsPerPage">Items per page:</label>
-                    <select id="itemsPerPage">
-                        <option value="10">10</option>
-                        <option value="20" selected>20</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                </div>
-                <div class="page-navigation">
-                    <button id="prevPageBtn" aria-label="Previous Page">Previous</button>
-                    <span id="pageInfo">Page <span id="currentPageNum">1</span> of <span id="totalPagesNum">1</span></span>
-                    <button id="nextPageBtn" aria-label="Next Page">Next</button>
-                </div>
-            </div>
-        </main>
+.hero-content p {
+  font-size: 1.5rem;
+  max-width: 800px;
+  margin: 0 auto 2rem;
+  line-height: 1.4;
+}
 
-        <footer>
-            <p>Made with <i data-lucide="heart" class="footer-heart-icon"></i> by Ethan Watrall using the <a href="https://dp.la/" target="_blank">DPLA</a> <a href="https://pro.dp.la/developers" target="_blank">API</a>.</p>
-            <p>Hero header background photo by <a href="https://unsplash.com/@dmitrii_zhodzishskii?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Dmitrii Zhodzishskii</a> on <a href="https://unsplash.com/photos/a-group-of-statues-in-a-room-next-to-a-wall-cOihXsrJFRc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a></p>
-        </footer>
-    </div>
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+}
 
-    <script src="js/app.js"></script>
-</body>
-</html>
+main {
+  min-height: 500px;
+}
+
+.toolbar .search-container {
+  max-width: 360px;
+  flex: 1;
+  margin-bottom: 0;
+}
+
+.toolbar .search-input-wrapper {
+  position: relative;
+  width: 100%;
+}
+
+.toolbar .search-input-wrapper input {
+  padding: 7px 30px 7px 35px;
+  background-color: #ffffff;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  width: 100%;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+}
+
+.toolbar .search-input-wrapper input:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2);
+  background-color: #fff;
+}
+
+.toolbar .search-icon {
+  position: absolute;
+  left: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: #999;
+  pointer-events: none;
+  width: 14px;
+  height: 14px;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  margin-bottom: 20px;
+  background-color: var(--filter-bg);
+  border: 1px solid var(--filter-border);
+  border-radius: 4px;
+}
+
+.toolbar .filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  flex: 2;
+}
+
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+  min-width: 150px;
+}
+
+.custom-dropdown .dropdown-button {
+  width: 100%;
+  padding: 7px 12px;
+  background-color: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.2s ease;
+}
+
+.custom-dropdown .dropdown-button:hover {
+  border-color: #95a5a6;
+}
+
+.custom-dropdown .dropdown-button::after {
+  content: '▼';
+  font-size: 0.8em;
+  margin-left: 8px;
+  color: #777;
+}
+
+.custom-dropdown .dropdown-button.active,
+.custom-dropdown .dropdown-button.active:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2);
+}
+
+.custom-dropdown .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  float: left;
+  min-width: 100%;
+  padding: 5px 0;
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--text-color);
+  text-align: left;
+  list-style: none;
+  background-color: var(--dropdown-bg);
+  background-clip: padding-box;
+  border: 1px solid var(--dropdown-border);
+  border-radius: 4px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.custom-dropdown .dropdown-menu.show {
+  display: block;
+}
+
+.custom-dropdown .dropdown-menu li {
+  padding: 0;
+  margin: 0;
+}
+
+.custom-dropdown .dropdown-menu label {
+  display: flex;
+  align-items: flex-start;
+  padding: 6px 12px;
+  margin: 0;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.custom-dropdown .dropdown-menu label:hover {
+  background-color: var(--dropdown-hover-bg);
+}
+
+.custom-dropdown .dropdown-menu input[type="checkbox"],
+.custom-dropdown .dropdown-menu input[type="radio"] {
+  margin-top: 3px;
+  margin-right: 8px;
+  flex-shrink: 0;
+}
+
+.custom-dropdown .dropdown-menu label span {
+  flex-grow: 1;
+  hyphens: auto;
+  word-break: break-word;
+}
+
+.custom-dropdown .dropdown-menu input[type="radio"] {
+    accent-color: var(--primary-color);
+}
+
+.toolbar .clear-filters-btn {
+  padding: 7px 10px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--primary-color);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap;
+}
+
+.toolbar .clear-filters-btn:hover {
+  background-color: var(--secondary-color);
+  border-color: #95a5a6;
+}
+
+.toolbar .view-toggle {
+  display: flex;
+  gap: 5px;
+  margin-left: auto;
+  flex-shrink: 0;
+}
+
+.toolbar .view-btn {
+  background-color: #fff;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  padding: 7px 10px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0;
+  line-height: 1;
+}
+
+.toolbar .view-btn:hover {
+  background-color: var(--secondary-color);
+  border-color: #95a5a6;
+}
+
+.toolbar .view-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+.toolbar .view-toggle .view-btn i {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.loading,
+.error {
+  text-align: center;
+  padding: 50px 20px;
+}
+
+.loading.hidden,
+.error.hidden {
+  display: none;
+}
+
+.spinner {
+  border: 4px solid rgba(0, 0, 0, 0.1);
+  border-left-color: var(--primary-color);
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+  margin: 0 auto 15px;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.error {
+  color: #e74c3c;
+}
+
+#contentArea {
+  margin-bottom: 30px;
+}
+
+.no-records-message {
+  text-align: center;
+  padding: 40px 20px;
+  font-style: italic;
+  color: #777;
+}
+
+.compact-image-view {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  border: 1px solid var(--civ-border);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.compact-image-header {
+  display: flex;
+  align-items: center;
+  padding: 12px 15px;
+  background-color: var(--civ-header-bg);
+  font-weight: 600;
+  font-size: 0.9em;
+  border-bottom: 1px solid var(--civ-border);
+}
+
+.compact-image-header .civ-col-image {
+  flex: 0 0 60px;
+  padding-right: 10px;
+}
+
+.compact-image-header .civ-col-title {
+  flex: 2;
+  padding: 0 10px;
+}
+
+.compact-image-header .civ-col-description {
+  flex: 3;
+  padding: 0 10px;
+}
+
+.compact-image-header .civ-col-date {
+  flex: 0 0 120px;
+  padding: 0 10px;
+  text-align: center;
+}
+
+.compact-image-header .civ-col-institution {
+  flex: 1;
+  padding: 0 10px;
+  text-align: center;
+}
+
+.compact-image-header .civ-col-link {
+  flex: 0 0 40px;
+  padding-left: 10px;
+  text-align: center;
+}
+
+.compact-image-item {
+  display: flex;
+  align-items: flex-start;
+  padding: 12px 15px;
+  border-bottom: 1px solid var(--civ-border);
+  transition: background-color 0.2s ease;
+}
+
+.compact-image-item:last-child {
+  border-bottom: none;
+}
+
+.compact-image-item:hover {
+  background-color: var(--civ-row-hover);
+}
+
+.compact-image-item .civ-col-image {
+  flex: 0 0 60px;
+  padding-right: 10px;
+}
+
+.compact-image-item .civ-col-title {
+  flex: 2;
+  padding: 0 10px;
+  font-weight: 500;
+  font-size: 0.95em;
+}
+
+.compact-image-item .civ-col-description {
+  flex: 3;
+  padding: 0 10px;
+  font-size: 0.9em;
+  color: #555;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.compact-image-item .civ-col-date {
+  flex: 0 0 120px;
+  padding: 0 10px;
+  font-size: 0.85em;
+  color: #777;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.compact-image-item .civ-col-institution {
+  flex: 1;
+  padding: 0 10px;
+  font-size: 0.85em;
+  color: #777;
+  font-style: italic;
+  text-align: left;
+  white-space: normal;
+  word-break: break-word;
+}
+
+.compact-image-item .civ-col-link {
+  flex: 0 0 40px;
+  padding-left: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.compact-image-item .civ-col-link a {
+  color: var(--primary-color);
+  opacity: 0.7;
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.compact-image-item .civ-col-link a:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+  text-decoration: none;
+}
+
+.compact-image-item .civ-col-link a i {
+  width: 1.1em;
+  height: 1.1em;
+}
+
+.civ-image-container {
+  width: 100%;
+  height: 60px;
+  background-color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border-radius: 3px;
+}
+
+.civ-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.civ-image-container .icon-placeholder {
+  color: #95a5a6;
+  width: 60%;
+  height: 60%;
+}
+
+.list-view {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.list-item {
+  padding: 15px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.list-item:last-child {
+  border-bottom: none;
+}
+
+.list-item h3 {
+  margin-bottom: 8px;
+  font-size: 1.1em;
+  font-weight: 500;
+}
+
+.list-item p {
+  margin-bottom: 8px;
+  color: #555;
+  font-size: 0.95em;
+}
+
+.list-item .provider {
+  font-style: italic;
+  color: #777;
+  font-size: 0.9em;
+}
+
+.list-item .view-link {
+  display: inline-block;
+  margin-top: 8px;
+  font-size: 0.9em;
+  color: var(--primary-color);
+}
+.list-item .view-link:hover {
+  text-decoration: underline;
+}
+
+.tile-view {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(var(--tile-width), 1fr));
+  gap: var(--gap-size);
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.tile-item {
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background-color: #fff;
+  box-shadow: var(--shadow);
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.tile-item:hover {
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
+  transform: translateY(-2px);
+}
+
+.tile-image-container {
+  width: 100%;
+  height: 180px;
+  background-color: var(--secondary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  position: relative;
+}
+
+.tile-image-container img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.tile-image-container .icon-placeholder {
+  color: #95a5a6;
+  width: 40%;
+  height: 40%;
+}
+
+.tile-content {
+  padding: 12px;
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.tile-content h3 {
+  margin: 0 0 8px 0;
+  font-size: 0.95em;
+  font-weight: 500;
+  line-height: 1.3;
+  flex-grow: 1;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.tile-content p {
+  margin: 0 0 5px 0;
+  font-size: 0.85em;
+  color: #777;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tile-content .view-link {
+  font-size: 0.8em;
+  color: var(--primary-color);
+  margin-top: auto;
+  align-self: flex-start;
+}
+.tile-content .view-link:hover {
+  text-decoration: underline;
+}
+
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 15px;
+  padding: 15px 0;
+  border-top: 1px solid var(--border-color);
+}
+
+.pagination.hidden {
+  display: none;
+}
+
+.items-per-page select {
+  padding: 5px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+}
+
+.page-navigation {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.page-navigation button {
+  padding: 6px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.page-navigation button:disabled {
+  background-color: var(--secondary-color);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.page-navigation button:hover:not(:disabled) {
+  background-color: var(--secondary-color);
+  border-color: #95a5a6;
+}
+
+#pageInfo {
+  font-size: 0.9em;
+  white-space: nowrap;
+}
+
+footer {
+  text-align: center;
+  padding: 20px 0;
+  margin-top: 10px;
+  border-top: 1px solid var(--border-color);
+  color: #777;
+  font-size: 0.9em;
+}
+
+footer p a {
+  color: var(--primary-color);
+  text-decoration: none;
+}
+footer p a:hover {
+  text-decoration: underline;
+}
+
+@media (max-width: 768px) {
+  .toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .toolbar .search-container {
+    max-width: 100%;
+    margin-bottom: 10px;
+  }
+
+  .toolbar .filters {
+    justify-content: center;
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .custom-dropdown {
+    min-width: 100%;
+  }
+
+  .toolbar .view-toggle {
+    justify-content: center;
+    margin-left: 0;
+  }
+
+  .compact-image-header,
+  .compact-image-item {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .compact-image-header > div,
+  .compact-image-item > div {
+    padding: 5px 0;
+    text-align: left;
+    flex: none;
+    width: 100%;
+  }
+
+  .compact-image-header .civ-col-image,
+  .compact-image-item .civ-col-image {
+    order: -1;
+    padding-bottom: 10px;
+  }
+
+  .civ-image-container {
+    width: 100%;
+    height: 150px;
+  }
+
+  .compact-image-header .civ-col-link,
+  .compact-image-item .civ-col-link {
+    text-align: left;
+    padding-top: 10px;
+  }
+
+  .tile-view {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    --tile-width: 160px;
+    --tile-height: 240px;
+  }
+
+  .tile-image-container {
+    height: 130px;
+  }
+
+  .pagination {
+    flex-direction: column;
+    align-items: stretch;
+    text-align: center;
+  }
+
+  .page-navigation {
+    justify-content: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .container {
+    padding: 15px;
+  }
+
+  .hero-header {
+    height: 300px;
+  }
+
+  .hero-content h1 {
+    font-size: 2.2rem;
+  }
+
+  .hero-content p {
+    font-size: 1.2rem;
+    max-width: 90%;
+  }
+
+  .tile-view {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    --gap-size: 10px;
+  }
+
+  .tile-image-container {
+    height: 110px;
+  }
+
+  .tile-content {
+    padding: 8px;
+  }
+
+  .tile-content h3 {
+    font-size: 0.9em;
+  }
+
+  .tile-content p,
+  .tile-content .view-link {
+    font-size: 0.75em;
+  }
+}
