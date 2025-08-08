@@ -44,13 +44,42 @@ body {
   margin: 0;
 }
 
-a {
-  color: var(--primary-color);
-  text-decoration: none;
+.hero-header {
+  position: relative;
+  background-image: url('../assets/background.jpg'); /* Update the path to the background image */
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  height: 400px; /* Adjust height as needed */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
 }
 
-a:hover {
-  text-decoration: underline;
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+}
+
+.hero-content {
+  z-index: 1;
+  color: white;
+}
+
+.hero-content h1 {
+  font-size: 3rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
+
+.hero-content p {
+  font-size: 1.5rem;
+  margin-bottom: 2rem;
 }
 
 .container {
@@ -266,7 +295,6 @@ main {
   display: flex;
   gap: 5px;
   margin-left: auto;
-  flex-shrink: 0;
 }
 
 /* --- Reduced padding for view buttons to match height ---
@@ -782,7 +810,7 @@ footer {
   }
 
   .tile-image-container {
-    height: 130px;
+    height: 110px;
   }
 
   .pagination {
