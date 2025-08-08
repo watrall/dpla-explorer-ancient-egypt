@@ -14,10 +14,14 @@
   --tile-height: 280px;
   --gap-size: 20px;
   /* --- Compact Image View Colors --- */
-  --civ-header-bg: #f0f0f0; /* Light gray header background */
-  --civ-row-hover: #f9f9f9; /* Subtle hover background */
-  --civ-border: #e0e0e0;    /* Light border */
+  --civ-header-bg: #f0f0f0;
+  --civ-row-hover: #f9f9f9;
+  --civ-border: #e0e0e0;
   /* --------------------------------- */
+  /* --- Filter Toolbar Colors --- */
+  --filter-bg: #f8f9fa;
+  --filter-border: #dee2e6;
+  /* ---------------------------- */
 }
 
 * {
@@ -62,18 +66,19 @@ header h1 {
   color: var(--primary-color);
 }
 
-.controls {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 15px;
+/* Main Content Area */
+main {
+  min-height: 500px;
 }
 
+
 /* --- Search Container & Input Styling (Inspired by orcid-archaeologists) --- */
+/* Moved from .controls section */
 .search-container {
   width: 100%;
   display: flex;
   justify-content: center;
+  margin-bottom: 20px; /* Add some space below the search bar */
 }
 
 .search-input-wrapper {
@@ -112,26 +117,85 @@ header h1 {
 /* -------------------------------------------------------------------------- */
 
 
+/* --- New Toolbar for Filters and View Toggles --- */
+.toolbar {
+  display: flex;
+  justify-content: space-between; /* Put filters on left, view toggles on right */
+  align-items: center;
+  flex-wrap: wrap; /* Allow wrapping on small screens */
+  gap: 15px; /* Space between filters and view toggles */
+  padding: 10px 0;
+  margin-bottom: 20px;
+  background-color: var(--filter-bg);
+  border: 1px solid var(--filter-border);
+  border-radius: 4px;
+  padding-left: 15px;
+  padding-right: 15px;
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px; /* Space between filter elements */
+}
+
+/* Style for filter dropdowns */
+.filters select {
+  padding: 6px 10px; /* Reduced padding */
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: #fff;
+  font-size: 14px; /* Slightly smaller font */
+  cursor: pointer;
+  min-width: 150px; /* Give them a minimum width */
+}
+
+/* Style for Clear Filters button */
+.clear-filters-btn {
+  padding: 6px 12px; /* Match button padding to select padding */
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  background-color: #fff;
+  cursor: pointer;
+  font-size: 14px;
+  color: var(--primary-color);
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.clear-filters-btn:hover {
+  background-color: var(--secondary-color);
+  border-color: #95a5a6;
+}
+
+/* Style for view toggle buttons (15% smaller) */
 .view-toggle {
   display: flex;
   gap: 5px;
 }
 
+/* --- Reduced padding by 15% ---
+   Original padding: 8px 12px
+   15% reduction: 8 * 0.85 = 6.8px, 12 * 0.85 = 10.2px
+   Rounded to: 7px 10px
+*/
 .view-btn {
   background-color: #fff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  padding: 8px 12px;
+  /* --- Updated Padding --- */
+  padding: 7px 10px; /* ~15% smaller */
+  /* --------------------- */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background-color 0.2s ease, border-color 0.2s ease; /* Subtle transition */
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .view-btn:hover {
   background-color: var(--secondary-color);
-  border-color: #95a5a6; /* Slightly darker border on hover */
+  border-color: #95a5a6;
 }
 
 .view-btn.active {
@@ -144,12 +208,8 @@ header h1 {
   width: 1.2em;
   height: 1.2em;
 }
+/* ------------------------------------------------ */
 
-
-/* Main Content Area */
-main {
-  min-height: 500px;
-}
 
 /* Loading & Error States */
 .loading,
@@ -195,7 +255,7 @@ main {
   margin: 0;
   border: 1px solid var(--civ-border);
   border-radius: 4px;
-  overflow: hidden; /* Contain child borders */
+  overflow: hidden;
 }
 
 .compact-image-header {
@@ -209,44 +269,44 @@ main {
 }
 
 .compact-image-header .civ-col-image {
-  flex: 0 0 60px; /* Fixed width for image column */
+  flex: 0 0 60px;
   padding-right: 10px;
 }
 
 .compact-image-header .civ-col-title {
-  flex: 2; /* Title gets more space */
+  flex: 2;
   padding: 0 10px;
 }
 
 .compact-image-header .civ-col-description {
-  flex: 3; /* Description gets the most space */
+  flex: 3;
   padding: 0 10px;
 }
 
 .compact-image-header .civ-col-date {
-  flex: 0 0 120px; /* Fixed width for date */
+  flex: 0 0 120px;
   padding: 0 10px;
   text-align: center;
 }
 
 .compact-image-header .civ-col-institution {
-  flex: 1; /* Institution gets less space */
+  flex: 1;
   padding: 0 10px;
   text-align: center;
 }
 
 .compact-image-header .civ-col-link {
-  flex: 0 0 40px; /* Fixed width for link icon */
+  flex: 0 0 40px;
   padding-left: 10px;
   text-align: center;
 }
 
 .compact-image-item {
   display: flex;
-  align-items: flex-start; /* Align items to the top */
+  align-items: flex-start;
   padding: 12px 15px;
   border-bottom: 1px solid var(--civ-border);
-  transition: background-color 0.2s ease; /* Subtle hover transition */
+  transition: background-color 0.2s ease;
 }
 
 .compact-image-item:last-child {
@@ -275,7 +335,7 @@ main {
   font-size: 0.9em;
   color: #555;
   display: -webkit-box;
-  -webkit-line-clamp: 2; /* Limit description to 2 lines */
+  -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
@@ -291,7 +351,7 @@ main {
   text-overflow: ellipsis;
 }
 
-/* --- Updated Institution Column Styling (Allows Wrapping) --- */
+/* --- Updated Institution Column Styling (Allows Wrapping and Left-Justified) --- */
 .compact-image-item .civ-col-institution {
   flex: 1;
   padding: 0 10px;
@@ -299,11 +359,10 @@ main {
   color: #777;
   font-style: italic;
   text-align: left;
-  /* Allow text to wrap */
-  white-space: normal; /* Changed from nowrap */
-  word-break: break-word; /* Handle long words */
+  white-space: normal;
+  word-break: break-word;
 }
-/* ---------------------------------------------------------- */
+/* ----------------------------------------------------------------------------- */
 
 .compact-image-item .civ-col-link {
   flex: 0 0 40px;
@@ -316,12 +375,12 @@ main {
 .compact-image-item .civ-col-link a {
   color: var(--primary-color);
   opacity: 0.7;
-  transition: opacity 0.2s ease, transform 0.2s ease; /* Subtle icon transitions */
+  transition: opacity 0.2s ease, transform 0.2s ease;
 }
 
 .compact-image-item .civ-col-link a:hover {
   opacity: 1;
-  transform: translateY(-1px); /* Slight lift on hover */
+  transform: translateY(-1px);
   text-decoration: none;
 }
 
@@ -333,13 +392,13 @@ main {
 /* Image Container within Compact Image View */
 .civ-image-container {
   width: 100%;
-  height: 60px; /* Match header column height */
+  height: 60px;
   background-color: var(--secondary-color);
   display: flex;
   align-items: center;
   justify-content: center;
   overflow: hidden;
-  border-radius: 3px; /* Slight rounding */
+  border-radius: 3px;
 }
 
 .civ-image-container img {
@@ -421,12 +480,12 @@ main {
   flex-direction: column;
   background-color: #fff;
   box-shadow: var(--shadow);
-  transition: box-shadow 0.2s ease, transform 0.2s ease; /* Subtle tile transitions */
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
 }
 
 .tile-item:hover {
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.15);
-  transform: translateY(-2px); /* Slight lift on hover */
+  transform: translateY(-2px);
 }
 
 .tile-image-container {
@@ -526,7 +585,7 @@ main {
   border-radius: 4px;
   background-color: #fff;
   cursor: pointer;
-  transition: background-color 0.2s ease, border-color 0.2s ease; /* Subtle button transition */
+  transition: background-color 0.2s ease, border-color 0.2s ease;
 }
 
 .page-navigation button:disabled {
@@ -557,9 +616,13 @@ footer {
 
 /* Responsive Design */
 @media (max-width: 768px) {
-  .controls {
+  .toolbar {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .filters {
+    justify-content: center;
   }
 
   .search-container {
@@ -574,7 +637,6 @@ footer {
   }
 
   /* --- Compact Image View Responsive --- */
-  /* On small screens, stack columns vertically or simplify */
   .compact-image-header,
   .compact-image-item {
     flex-direction: column;
@@ -585,13 +647,13 @@ footer {
   .compact-image-item > div {
     padding: 5px 0;
     text-align: left;
-    flex: none; /* Reset flex properties */
+    flex: none;
     width: 100%;
   }
 
   .compact-image-header .civ-col-image,
   .compact-image-item .civ-col-image {
-    order: -1; /* Move image to the top */
+    order: -1;
     padding-bottom: 10px;
   }
 
