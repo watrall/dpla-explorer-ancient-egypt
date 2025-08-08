@@ -72,88 +72,111 @@ main {
 }
 
 
-/* --- Search Container & Input Styling (Inspired by orcid-archaeologists) --- */
-/* Moved from .controls section */
-.search-container {
-  width: 100%;
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px; /* Add some space below the search bar */
+/* --- Search Container & Input Styling (Inside Toolbar) --- */
+/* Search bar is now inside .toolbar */
+.toolbar .search-container {
+  flex: 1; /* Allow search bar to grow and take available space */
+  max-width: 300px; /* Constrain its maximum width */
+  margin-bottom: 0; /* Remove bottom margin as it's inline */
 }
 
-.search-input-wrapper {
+.toolbar .search-input-wrapper {
   position: relative;
   width: 100%;
-  max-width: 500px;
 }
 
-.search-input-wrapper input {
-  padding: 10px 15px 10px 40px;
-  background-color: #f5f5f5;
-  border: 1px solid #ddd;
+.toolbar .search-input-wrapper input {
+  padding: 8px 30px 8px 35px; /* Adjusted padding for smaller size and icon */
+  background-color: #ffffff; /* White background inside toolbar */
+  border: 1px solid var(--border-color);
   border-radius: 4px;
   width: 100%;
-  font-size: 16px;
+  font-size: 14px; /* Smaller font size */
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
-.search-input-wrapper input:focus {
+.toolbar .search-input-wrapper input:focus {
   outline: none;
   border-color: var(--primary-color);
   box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2);
   background-color: #fff;
 }
 
-.search-icon {
+.toolbar .search-icon {
   position: absolute;
-  left: 12px;
+  left: 10px; /* Adjusted icon position */
   top: 50%;
   transform: translateY(-50%);
   color: #999;
   pointer-events: none;
-  width: 18px;
-  height: 18px;
+  width: 14px; /* Smaller icon */
+  height: 14px;
 }
 /* -------------------------------------------------------------------------- */
 
 
-/* --- New Toolbar for Filters and View Toggles --- */
+/* --- New Toolbar for Search, Filters and View Toggles --- */
 .toolbar {
   display: flex;
-  justify-content: space-between; /* Put filters on left, view toggles on right */
+  /* Use flex-wrap to allow items to wrap on smaller screens */
+  flex-wrap: wrap;
+  /* Align items to the start (left) and distribute space between groups */
+  justify-content: flex-start;
   align-items: center;
-  flex-wrap: wrap; /* Allow wrapping on small screens */
-  gap: 15px; /* Space between filters and view toggles */
-  padding: 10px 0;
+  gap: 15px; /* Consistent gap between elements */
+  padding: 15px; /* Padding inside the toolbar */
   margin-bottom: 20px;
   background-color: var(--filter-bg);
   border: 1px solid var(--filter-border);
   border-radius: 4px;
-  padding-left: 15px;
-  padding-right: 15px;
 }
 
-.filters {
+/* Group filters together */
+.toolbar .filters {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px; /* Space between filter elements */
+  gap: 10px; /* Gap between filter elements */
+  /* Allow filters to shrink/grow but take priority over search bar if needed */
+  flex: 2;
 }
 
 /* Style for filter dropdowns */
-.filters select {
-  padding: 6px 10px; /* Reduced padding */
+.toolbar .filters select {
+  padding: 6px 8px; /* Adjusted padding */
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: #fff;
-  font-size: 14px; /* Slightly smaller font */
+  font-size: 14px; /* Smaller font */
   cursor: pointer;
-  min-width: 150px; /* Give them a minimum width */
+  min-width: 120px; /* Adjusted minimum width */
+}
+
+/* Specific styles for multi-select dropdowns */
+.toolbar .filters select[multiple] {
+    height: auto; /* Allow height to adjust */
+    min-height: 30px; /* Minimum height */
+    max-height: 80px; /* Maximum height before scrolling */
+    overflow-y: auto; /* Enable vertical scrolling */
+    /* Optional: Style the scrollbar */
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) var(--secondary-color);
+}
+.toolbar .filters select[multiple]::-webkit-scrollbar {
+    width: 8px;
+}
+.toolbar .filters select[multiple]::-webkit-scrollbar-track {
+    background: var(--secondary-color);
+    border-radius: 4px;
+}
+.toolbar .filters select[multiple]::-webkit-scrollbar-thumb {
+    background-color: var(--primary-color);
+    border-radius: 4px;
 }
 
 /* Style for Clear Filters button */
-.clear-filters-btn {
-  padding: 6px 12px; /* Match button padding to select padding */
+.toolbar .clear-filters-btn {
+  padding: 6px 10px; /* Adjusted padding */
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: #fff;
@@ -161,25 +184,28 @@ main {
   font-size: 14px;
   color: var(--primary-color);
   transition: background-color 0.2s ease, border-color 0.2s ease;
+  white-space: nowrap; /* Prevent text wrapping */
 }
 
-.clear-filters-btn:hover {
+.toolbar .clear-filters-btn:hover {
   background-color: var(--secondary-color);
   border-color: #95a5a6;
 }
 
-/* Style for view toggle buttons (15% smaller) */
-.view-toggle {
+/* Push view toggles to the end */
+.toolbar .view-toggle {
   display: flex;
   gap: 5px;
+  margin-left: auto; /* Push to the right */
+  flex-shrink: 0; /* Prevent view toggles from shrinking */
 }
 
-/* --- Reduced padding by 15% ---
+/* --- Reduced padding by 15% for view buttons ---
    Original padding: 8px 12px
    15% reduction: 8 * 0.85 = 6.8px, 12 * 0.85 = 10.2px
    Rounded to: 7px 10px
 */
-.view-btn {
+.toolbar .view-btn {
   background-color: #fff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -191,22 +217,23 @@ main {
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, border-color 0.2s ease;
+  flex-shrink: 0; /* Prevent buttons from shrinking */
 }
 
-.view-btn:hover {
+.toolbar .view-btn:hover {
   background-color: var(--secondary-color);
   border-color: #95a5a6;
 }
 
-.view-btn.active {
+.toolbar .view-btn.active {
   background-color: var(--primary-color);
   color: white;
   border-color: var(--primary-color);
 }
 
-.view-toggle .view-btn i {
-  width: 1.2em;
-  height: 1.2em;
+.toolbar .view-toggle .view-btn i {
+  width: 1.1em; /* Slightly smaller icon to match button size */
+  height: 1.1em;
 }
 /* ------------------------------------------------ */
 
@@ -245,6 +272,14 @@ main {
 
 #contentArea {
   margin-bottom: 30px;
+}
+
+/* No Records Message */
+.no-records-message {
+  text-align: center;
+  padding: 40px 20px;
+  font-style: italic;
+  color: #777;
 }
 
 
@@ -621,19 +656,24 @@ footer {
     align-items: stretch;
   }
 
-  .filters {
-    justify-content: center;
-  }
-
-  .search-container {
-  }
-
-  .search-input-wrapper {
+  .toolbar .search-container {
     max-width: 100%;
+    margin-bottom: 10px; /* Add space below search on small screens */
   }
 
-  .view-toggle {
+  .toolbar .filters {
     justify-content: center;
+    flex-direction: column; /* Stack filters vertically on small screens */
+    align-items: stretch;
+  }
+
+  .toolbar .filters select {
+    min-width: 100%; /* Make selects full width on small screens */
+  }
+
+  .toolbar .view-toggle {
+    justify-content: center;
+    margin-left: 0; /* Reset margin */
   }
 
   /* --- Compact Image View Responsive --- */
