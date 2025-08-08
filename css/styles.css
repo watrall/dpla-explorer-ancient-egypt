@@ -269,17 +269,16 @@ main {
   flex-shrink: 0;
 }
 
-/* --- Further reduced padding for view buttons to match height ---
-   Target height similar to search input (approx 32px total)
-   Padding: ~7px top/bottom + 2px border = 16px. 32 - 16 = 16px for content line-height?
-   Let's try padding ~6px 9px for a snugger fit.
+/* --- Reduced padding for view buttons to match height ---
+   All other elements in the toolbar (search input, dropdown buttons, clear button)
+   have a padding-top/bottom of 7px. Let's make the view buttons match that.
 */
 .toolbar .view-btn {
   background-color: #fff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   /* --- Updated Padding to match height --- */
-  padding: 6px 9px; /* Reduced padding to match height */
+  padding: 7px 10px; /* Reduced vertical padding to match 32px height */
   /* -------------------------------------- */
   cursor: pointer;
   display: flex;
