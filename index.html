@@ -3,42 +3,32 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <!-- Updated Title -->
     <title>DPLA Explorer: Ancient Egypt</title>
-    <!-- --- -->
     <link rel="stylesheet" href="css/styles.css">
-    <!-- Lucide Icons (using CDN for simplicity) -->
     <script src="https://unpkg.com/lucide@latest"></script>
 </head>
 <body>
     <div class="container">
         <header>
-            <!-- Updated Main Heading -->
             <h1>DPLA Explorer: Ancient Egypt</h1>
             <div class="controls">
-                <!-- --- Search Input --- -->
                 <div class="search-container">
                     <div class="search-input-wrapper">
                         <input type="text" id="searchInput" placeholder="Search within results...">
                         <i data-lucide="search" class="search-icon"></i>
                     </div>
                 </div>
-                <!-- -------------------- -->
-                <!-- --- View Toggle with Correct Icons and Names --- -->
                 <div class="view-toggle">
                     <button id="listViewBtn" aria-label="List View" class="view-btn">
-                         <i data-lucide="align-justify"></i> <!-- List icon -->
+                         <i data-lucide="align-justify"></i>
                     </button>
-                    <!-- Changed ID and Icon -->
                     <button id="compactImageViewBtn" aria-label="Compact Image View" class="view-btn active">
-                         <i data-lucide="layout-list"></i> <!-- Compact List icon -->
+                         <i data-lucide="layout-list"></i>
                     </button>
-                    <!-- ------------------- -->
                     <button id="tileViewBtn" aria-label="Tile View" class="view-btn">
-                         <i data-lucide="layout-grid"></i> <!-- Tile/Grid icon -->
+                         <i data-lucide="layout-grid"></i>
                     </button>
                 </div>
-                 <!-- -------------------------------------------------- -->
             </div>
         </header>
 
@@ -75,10 +65,7 @@
         </main>
 
         <footer>
-            <!-- Updated Footer Text -->
-            <!-- Change: Removed "Explore Ancient Egypt with DPLA." and replaced "love" with heart icon -->
             <p>Made with <i data-lucide="heart"></i> by Ethan Watrall using the <a href="https://dp.la/" target="_blank">DPLA</a> <a href="https://pro.dp.la/developers" target="_blank">API</a>.</p>
-            <!-- --- -->
         </footer>
     </div>
 
