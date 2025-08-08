@@ -27,33 +27,95 @@
         <main>
             <!-- --- New Toolbar for Search, Filters and View Toggles --- -->
             <div class="toolbar">
-                <!-- Search Bar (Moved inside toolbar) -->
+                <!-- Search Bar -->
                 <div class="search-container">
                     <div class="search-input-wrapper">
                         <input type="text" id="searchInput" placeholder="Search within results...">
                         <i data-lucide="search" class="search-icon"></i>
                     </div>
                 </div>
+
                 <!-- Faceted Filters -->
                 <div class="filters">
-                    <select id="typeFilter" multiple title="Select one or more types">
-                        <option value="" disabled>Select Types...</option>
-                        <!-- Options will be populated by JS -->
-                    </select>
-                    <select id="institutionFilter" multiple title="Select one or more institutions">
-                        <option value="" disabled>Select Institutions...</option>
-                        <!-- Options will be populated by JS -->
-                    </select>
-                    <select id="dateFilter" title="Select a date range">
-                        <option value="">All Dates</option>
-                        <option value="before-1800">Before 1800</option>
-                        <option value="1800-1900">1800-1900</option>
-                        <option value="1900-1950">1900-1950</option>
-                        <option value="1950-2000">1950-2000</option>
-                        <option value="after-2000">After 2000</option>
-                    </select>
+                    <!-- Type Filter Custom Dropdown -->
+                    <div class="custom-dropdown" id="typeFilterContainer">
+                        <button class="dropdown-button" type="button" aria-haspopup="listbox" aria-expanded="false">
+                            Select Types...
+                        </button>
+                        <ul class="dropdown-menu" role="listbox" aria-multiselectable="true">
+                            <!-- Options will be populated by JS -->
+                        </ul>
+                        <!-- Hidden select to potentially capture state if needed by other parts -->
+                        <select id="typeFilter" multiple style="display:none;">
+                            <!-- Options will be mirrored by JS -->
+                        </select>
+                    </div>
+
+                    <!-- Institution Filter Custom Dropdown -->
+                    <div class="custom-dropdown" id="institutionFilterContainer">
+                        <button class="dropdown-button" type="button" aria-haspopup="listbox" aria-expanded="false">
+                            Select Institutions...
+                        </button>
+                        <ul class="dropdown-menu" role="listbox" aria-multiselectable="true">
+                            <!-- Options will be populated by JS -->
+                        </ul>
+                        <!-- Hidden select to potentially capture state -->
+                        <select id="institutionFilter" multiple style="display:none;">
+                            <!-- Options will be mirrored by JS -->
+                        </select>
+                    </div>
+
+                    <!-- Date Filter Custom Dropdown (Single Select) -->
+                    <div class="custom-dropdown" id="dateFilterContainer">
+                        <button class="dropdown-button" type="button" aria-haspopup="listbox" aria-expanded="false">
+                            All Dates
+                        </button>
+                        <ul class="dropdown-menu" role="listbox" aria-multiselectable="false">
+                            <li>
+                                <label>
+                                    <input type="radio" name="dateFilterGroup" value=""> All Dates
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="dateFilterGroup" value="before-1800"> Before 1800
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="dateFilterGroup" value="1800-1900"> 1800-1900
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="dateFilterGroup" value="1900-1950"> 1900-1950
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="dateFilterGroup" value="1950-2000"> 1950-2000
+                                </label>
+                            </li>
+                            <li>
+                                <label>
+                                    <input type="radio" name="dateFilterGroup" value="after-2000"> After 2000
+                                </label>
+                            </li>
+                        </ul>
+                        <!-- Hidden select for date filter -->
+                        <select id="dateFilter" style="display:none;">
+                            <option value="">All Dates</option>
+                            <option value="before-1800">Before 1800</option>
+                            <option value="1800-1900">1800-1900</option>
+                            <option value="1900-1950">1900-1950</option>
+                            <option value="1950-2000">1950-2000</option>
+                            <option value="after-2000">After 2000</option>
+                        </select>
+                    </div>
+
                     <button id="clearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
                 </div>
+
                 <!-- View Toggle Buttons -->
                 <div class="view-toggle">
                     <button id="listViewBtn" aria-label="List View" class="view-btn">
