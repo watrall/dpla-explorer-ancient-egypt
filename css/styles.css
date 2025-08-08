@@ -22,6 +22,11 @@
   --filter-bg: #f8f9fa;
   --filter-border: #dee2e6;
   /* ---------------------------- */
+  /* --- Custom Dropdown Colors --- */
+  --dropdown-bg: #ffffff;
+  --dropdown-border: #bdc3c7;
+  --dropdown-hover-bg: #e9ecef;
+  /* ----------------------------- */
 }
 
 * {
@@ -73,11 +78,12 @@ main {
 
 
 /* --- Search Container & Input Styling (Inside Toolbar) --- */
-/* Search bar is now inside .toolbar */
 .toolbar .search-container {
-  flex: 1; /* Allow search bar to grow and take available space */
-  max-width: 300px; /* Constrain its maximum width */
-  margin-bottom: 0; /* Remove bottom margin as it's inline */
+  /* --- Increased width by 20% --- */
+  max-width: 360px; /* 20% more than 300px */
+  /* ---------------------------- */
+  flex: 1;
+  margin-bottom: 0;
 }
 
 .toolbar .search-input-wrapper {
@@ -86,12 +92,14 @@ main {
 }
 
 .toolbar .search-input-wrapper input {
-  padding: 8px 30px 8px 35px; /* Adjusted padding for smaller size and icon */
-  background-color: #ffffff; /* White background inside toolbar */
+  /* --- Adjusted height to match other toolbar items --- */
+  padding: 7px 30px 7px 35px; /* Reduced top/bottom padding */
+  /* ---------------------------------------------------- */
+  background-color: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   width: 100%;
-  font-size: 14px; /* Smaller font size */
+  font-size: 14px;
   transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
 }
 
@@ -104,12 +112,12 @@ main {
 
 .toolbar .search-icon {
   position: absolute;
-  left: 10px; /* Adjusted icon position */
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
   color: #999;
   pointer-events: none;
-  width: 14px; /* Smaller icon */
+  width: 14px;
   height: 14px;
 }
 /* -------------------------------------------------------------------------- */
@@ -118,65 +126,126 @@ main {
 /* --- New Toolbar for Search, Filters and View Toggles --- */
 .toolbar {
   display: flex;
-  /* Use flex-wrap to allow items to wrap on smaller screens */
   flex-wrap: wrap;
-  /* Align items to the start (left) and distribute space between groups */
   justify-content: flex-start;
   align-items: center;
-  gap: 15px; /* Consistent gap between elements */
-  padding: 15px; /* Padding inside the toolbar */
+  gap: 15px;
+  padding: 15px;
   margin-bottom: 20px;
   background-color: var(--filter-bg);
   border: 1px solid var(--filter-border);
   border-radius: 4px;
 }
 
-/* Group filters together */
 .toolbar .filters {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
-  gap: 10px; /* Gap between filter elements */
-  /* Allow filters to shrink/grow but take priority over search bar if needed */
+  gap: 10px;
   flex: 2;
 }
 
-/* Style for filter dropdowns */
-.toolbar .filters select {
-  padding: 6px 8px; /* Adjusted padding */
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background-color: #fff;
-  font-size: 14px; /* Smaller font */
-  cursor: pointer;
-  min-width: 120px; /* Adjusted minimum width */
+/* --- Custom Dropdown Styles --- */
+.custom-dropdown {
+  position: relative;
+  display: inline-block;
+  min-width: 150px; /* Minimum width for dropdown */
 }
 
-/* Specific styles for multi-select dropdowns */
-.toolbar .filters select[multiple] {
-    height: auto; /* Allow height to adjust */
-    min-height: 30px; /* Minimum height */
-    max-height: 80px; /* Maximum height before scrolling */
-    overflow-y: auto; /* Enable vertical scrolling */
-    /* Optional: Style the scrollbar */
-    scrollbar-width: thin;
-    scrollbar-color: var(--primary-color) var(--secondary-color);
+.custom-dropdown .dropdown-button {
+  width: 100%;
+  /* --- Match height with search input --- */
+  padding: 7px 12px; /* Adjusted padding */
+  /* ------------------------------------- */
+  background-color: var(--dropdown-bg);
+  border: 1px solid var(--dropdown-border);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  text-align: left;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: border-color 0.2s ease;
 }
-.toolbar .filters select[multiple]::-webkit-scrollbar {
-    width: 8px;
+
+.custom-dropdown .dropdown-button:hover {
+  border-color: #95a5a6;
 }
-.toolbar .filters select[multiple]::-webkit-scrollbar-track {
-    background: var(--secondary-color);
-    border-radius: 4px;
+
+.custom-dropdown .dropdown-button::after {
+  content: '▼'; /* Simple down arrow */
+  font-size: 0.8em;
+  margin-left: 8px;
+  color: #777;
 }
-.toolbar .filters select[multiple]::-webkit-scrollbar-thumb {
-    background-color: var(--primary-color);
-    border-radius: 4px;
+
+.custom-dropdown .dropdown-button.active,
+.custom-dropdown .dropdown-button.active:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(3, 115, 140, 0.2);
 }
+
+.custom-dropdown .dropdown-menu {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 1000;
+  display: none;
+  float: left;
+  min-width: 100%;
+  padding: 5px 0;
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--text-color);
+  text-align: left;
+  list-style: none;
+  background-color: var(--dropdown-bg);
+  background-clip: padding-box;
+  border: 1px solid var(--dropdown-border);
+  border-radius: 4px;
+  box-shadow: 0 6px 12px rgba(0, 0, 0, 0.175);
+  max-height: 200px;
+  overflow-y: auto;
+}
+
+.custom-dropdown .dropdown-menu.show {
+  display: block;
+}
+
+.custom-dropdown .dropdown-menu li {
+  padding: 0;
+  margin: 0;
+}
+
+.custom-dropdown .dropdown-menu label {
+  display: block;
+  padding: 6px 12px;
+  margin: 0;
+  cursor: pointer;
+  transition: background-color 0.1s ease;
+}
+
+.custom-dropdown .dropdown-menu label:hover {
+  background-color: var(--dropdown-hover-bg);
+}
+
+.custom-dropdown .dropdown-menu input[type="checkbox"],
+.custom-dropdown .dropdown-menu input[type="radio"] {
+  margin-right: 8px;
+}
+
+.custom-dropdown .dropdown-menu input[type="radio"] {
+    accent-color: var(--primary-color); /* Style radio buttons */
+}
+/* -------------------------------- */
+
 
 /* Style for Clear Filters button */
 .toolbar .clear-filters-btn {
-  padding: 6px 10px; /* Adjusted padding */
+  /* --- Match height with search input and dropdown buttons --- */
+  padding: 7px 10px; /* Adjusted padding */
+  /* ---------------------------------------------------------- */
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: #fff;
@@ -184,7 +253,7 @@ main {
   font-size: 14px;
   color: var(--primary-color);
   transition: background-color 0.2s ease, border-color 0.2s ease;
-  white-space: nowrap; /* Prevent text wrapping */
+  white-space: nowrap;
 }
 
 .toolbar .clear-filters-btn:hover {
@@ -196,28 +265,30 @@ main {
 .toolbar .view-toggle {
   display: flex;
   gap: 5px;
-  margin-left: auto; /* Push to the right */
-  flex-shrink: 0; /* Prevent view toggles from shrinking */
+  margin-left: auto;
+  flex-shrink: 0;
 }
 
-/* --- Reduced padding by 15% for view buttons ---
-   Original padding: 8px 12px
-   15% reduction: 8 * 0.85 = 6.8px, 12 * 0.85 = 10.2px
-   Rounded to: 7px 10px
+/* --- Further reduced padding for view buttons to match height ---
+   Target height similar to search input (approx 32px total)
+   Padding: ~7px top/bottom + 2px border = 16px. 32 - 16 = 16px for content line-height?
+   Let's try padding ~6px 9px for a snugger fit.
 */
 .toolbar .view-btn {
   background-color: #fff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  /* --- Updated Padding --- */
-  padding: 7px 10px; /* ~15% smaller */
-  /* --------------------- */
+  /* --- Updated Padding to match height --- */
+  padding: 6px 9px; /* Reduced padding to match height */
+  /* -------------------------------------- */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, border-color 0.2s ease;
-  flex-shrink: 0; /* Prevent buttons from shrinking */
+  flex-shrink: 0;
+  /* Ensure consistent line-height */
+  line-height: 1;
 }
 
 .toolbar .view-btn:hover {
@@ -232,7 +303,7 @@ main {
 }
 
 .toolbar .view-toggle .view-btn i {
-  width: 1.1em; /* Slightly smaller icon to match button size */
+  width: 1.1em;
   height: 1.1em;
 }
 /* ------------------------------------------------ */
@@ -386,7 +457,6 @@ main {
   text-overflow: ellipsis;
 }
 
-/* --- Updated Institution Column Styling (Allows Wrapping and Left-Justified) --- */
 .compact-image-item .civ-col-institution {
   flex: 1;
   padding: 0 10px;
@@ -397,7 +467,6 @@ main {
   white-space: normal;
   word-break: break-word;
 }
-/* ----------------------------------------------------------------------------- */
 
 .compact-image-item .civ-col-link {
   flex: 0 0 40px;
@@ -658,25 +727,24 @@ footer {
 
   .toolbar .search-container {
     max-width: 100%;
-    margin-bottom: 10px; /* Add space below search on small screens */
+    margin-bottom: 10px;
   }
 
   .toolbar .filters {
     justify-content: center;
-    flex-direction: column; /* Stack filters vertically on small screens */
+    flex-direction: column;
     align-items: stretch;
   }
 
-  .toolbar .filters select {
-    min-width: 100%; /* Make selects full width on small screens */
+  .custom-dropdown {
+    min-width: 100%;
   }
 
   .toolbar .view-toggle {
     justify-content: center;
-    margin-left: 0; /* Reset margin */
+    margin-left: 0;
   }
 
-  /* --- Compact Image View Responsive --- */
   .compact-image-header,
   .compact-image-item {
     flex-direction: column;
@@ -707,8 +775,6 @@ footer {
     text-align: left;
     padding-top: 10px;
   }
-  /* ------------------------------------ */
-
 
   .tile-view {
     grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
