@@ -108,6 +108,18 @@ body {
   padding: 20px;
 }
 
+/* Header */
+header {
+  margin-bottom: 30px;
+  text-align: center;
+}
+
+header h1 {
+  margin-bottom: 20px;
+  font-weight: 300;
+  color: var(--primary-color);
+}
+
 /* Main Content Area */
 main {
   min-height: 500px;
@@ -116,7 +128,9 @@ main {
 
 /* --- Search Container & Input Styling (Inside Toolbar) --- */
 .toolbar .search-container {
-  max-width: 360px;
+  /* --- Increased width by 20% --- */
+  max-width: 360px; /* 20% more than 300px */
+  /* ---------------------------- */
   flex: 1;
   margin-bottom: 0;
 }
@@ -127,7 +141,9 @@ main {
 }
 
 .toolbar .search-input-wrapper input {
-  padding: 7px 30px 7px 35px;
+  /* --- Adjusted height to match other toolbar items --- */
+  padding: 7px 30px 7px 35px; /* Reduced top/bottom padding */
+  /* ---------------------------------------------------- */
   background-color: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -182,12 +198,14 @@ main {
 .custom-dropdown {
   position: relative;
   display: inline-block;
-  min-width: 150px;
+  min-width: 150px; /* Minimum width for dropdown */
 }
 
 .custom-dropdown .dropdown-button {
   width: 100%;
-  padding: 7px 12px;
+  /* --- Match height with search input --- */
+  padding: 7px 12px; /* Adjusted padding */
+  /* ------------------------------------- */
   background-color: var(--dropdown-bg);
   border: 1px solid var(--dropdown-border);
   border-radius: 4px;
@@ -205,7 +223,7 @@ main {
 }
 
 .custom-dropdown .dropdown-button::after {
-  content: '▼';
+  content: '▼'; /* Simple down arrow */
   font-size: 0.8em;
   margin-left: 8px;
   color: #777;
@@ -249,8 +267,10 @@ main {
   margin: 0;
 }
 
+/* --- Updated Label Styling for Text Alignment --- */
 .custom-dropdown .dropdown-menu label {
-  display: block;
+  display: flex; /* Use flexbox for alignment */
+  align-items: flex-start; /* Align items to the start (top) */
   padding: 6px 12px;
   margin: 0;
   cursor: pointer;
@@ -261,20 +281,37 @@ main {
   background-color: var(--dropdown-hover-bg);
 }
 
+/* Style the input (checkbox/radio) within the label */
 .custom-dropdown .dropdown-menu input[type="checkbox"],
 .custom-dropdown .dropdown-menu input[type="radio"] {
-  margin-right: 8px;
+  margin-top: 3px; /* Adjust top margin for better alignment with text */
+  margin-right: 8px; /* Space between checkbox and text */
+  flex-shrink: 0; /* Prevent checkbox from shrinking */
 }
 
+/* Style the text within the label */
+.custom-dropdown .dropdown-menu label span { /* Wrap text in a span if needed for complex content */
+  /* If text is directly inside label after input, it will naturally wrap */
+  /* This ensures text takes remaining space and wraps correctly */
+  flex-grow: 1;
+  /* Optional: Add hyphenation for long words */
+  hyphens: auto;
+  word-break: break-word; /* Handle long words */
+}
+/* ------------------------------------------------ */
+
+
 .custom-dropdown .dropdown-menu input[type="radio"] {
-    accent-color: var(--primary-color);
+    accent-color: var(--primary-color); /* Style radio buttons */
 }
 /* -------------------------------- */
 
 
 /* Style for Clear Filters button */
 .toolbar .clear-filters-btn {
-  padding: 7px 10px;
+  /* --- Match height with search input and dropdown buttons --- */
+  padding: 7px 10px; /* Adjusted padding */
+  /* ---------------------------------------------------------- */
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: #fff;
@@ -298,18 +335,24 @@ main {
   flex-shrink: 0;
 }
 
-/* --- Reduced padding for view buttons to match height --- */
+/* --- Reduced padding for view buttons to match height ---
+   All other elements in the toolbar (search input, dropdown buttons, clear button)
+   have a padding-top/bottom of 7px. Let's make the view buttons match that.
+*/
 .toolbar .view-btn {
   background-color: #fff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  padding: 7px 10px; /* Reduced vertical padding */
+  /* --- Updated Padding to match height --- */
+  padding: 7px 10px; /* Reduced vertical padding to match 32px height */
+  /* -------------------------------------- */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, border-color 0.2s ease;
   flex-shrink: 0;
+  /* Ensure consistent line-height */
   line-height: 1;
 }
 
