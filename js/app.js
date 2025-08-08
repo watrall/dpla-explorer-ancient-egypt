@@ -1,13 +1,11 @@
 // js/app.js
 
-// --- Configuration ---
-const API_PROXY_URL = 'https://YOUR_FUNCTION_REGION.functions.app/dpla-proxy'; // Placeholder
+const API_PROXY_URL = 'https://YOUR_FUNCTION_REGION.functions.app/dpla-proxy';
 const CACHE_DURATION_HOURS = 24;
 const DEFAULT_ITEMS_PER_PAGE = 20;
-const SEARCH_DEBOUNCE_MS = 300; // Debounce search input
-const DEMO_RECORD_COUNT = 200; // Total number of demo records to generate
+const SEARCH_DEBOUNCE_MS = 300;
+const DEMO_RECORD_COUNT = 200;
 
-// --- Date Range Definitions ---
 const DATE_RANGES = {
     "before-1800": { start: null, end: 1799 },
     "1800-1900": { start: 1800, end: 1900 },
@@ -15,26 +13,21 @@ const DATE_RANGES = {
     "1950-2000": { start: 1950, end: 2000 },
     "after-2000": { start: 2001, end: null }
 };
-// ----------------------------
 
-// --- State Management ---
 let appState = {
     allRecords: [],
     filteredRecords: [],
-    currentView: 'tile', // 'list', 'compact-image', or 'tile'
+    currentView: 'tile',
     currentPage: 1,
     itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
     searchTerm: '',
-    // --- Filter State ---
     selectedTypes: [],
     selectedInstitutions: [],
     selectedDateRange: '',
-    // ------------------
     isLoading: false,
     hasError: false
 };
 
-// --- DOM Elements ---
 const elements = {
     listViewBtn: document.getElementById('listViewBtn'),
     compactImageViewBtn: document.getElementById('compactImageViewBtn'),
@@ -49,22 +42,18 @@ const elements = {
     nextPageBtn: document.getElementById('nextPageBtn'),
     currentPageNum: document.getElementById('currentPageNum'),
     totalPagesNum: document.getElementById('totalPagesNum'),
-    // --- Filter Elements (Custom UI) ---
     typeFilterButton: document.querySelector('#typeFilterContainer .dropdown-button'),
     typeFilterMenu: document.querySelector('#typeFilterContainer .dropdown-menu'),
-    typeFilterSelect: document.getElementById('typeFilter'), // Hidden select
+    typeFilterSelect: document.getElementById('typeFilter'),
     institutionFilterButton: document.querySelector('#institutionFilterContainer .dropdown-button'),
     institutionFilterMenu: document.querySelector('#institutionFilterContainer .dropdown-menu'),
-    institutionFilterSelect: document.getElementById('institutionFilter'), // Hidden select
+    institutionFilterSelect: document.getElementById('institutionFilter'),
     dateFilterButton: document.querySelector('#dateFilterContainer .dropdown-button'),
     dateFilterMenu: document.querySelector('#dateFilterContainer .dropdown-menu'),
-    dateFilterSelect: document.getElementById('dateFilter'), // Hidden select
+    dateFilterSelect: document.getElementById('dateFilter'),
     dateFilterRadios: document.querySelectorAll('input[name="dateFilterGroup"]'),
     clearFiltersBtn: document.getElementById('clearFiltersBtn')
-    // ----------------------------------
 };
-
-// --- Utility Functions ---
 
 function showElement(el) {
     el.classList.remove('hidden');
@@ -98,7 +87,6 @@ function setError(hasError) {
     }
 }
 
-// --- Cache Management (using localStorage) ---
 const FULL_DATASET_CACHE_KEY = 'dpla_egypt_full_dataset_demo';
 
 function isCacheValid(cachedItem) {
@@ -143,8 +131,6 @@ function loadFullDatasetFromCache() {
     }
 }
 
-// --- API Interaction (Placeholder/Demo) ---
-
 async function fetchFullDplaDataset() {
     let fullDataset = loadFullDatasetFromCache();
 
@@ -171,8 +157,6 @@ async function fetchFullDplaDataset() {
         setLoading(false);
     }
 }
-
-// --- View Rendering ---
 
 function renderListView(records) {
     const listElement = document.createElement('ul');
@@ -326,13 +310,10 @@ function renderCompactImageView(records) {
     lucide.createIcons();
 }
 
-// --- No Records Found Message ---
 function renderNoRecordsMessage() {
     elements.contentArea.innerHTML = '<p class="no-records-message">No records found. Please adjust your search or filter terms.</p>';
     hideElement(elements.paginationControls);
 }
-// --------------------------------
-
 
 function updatePaginationControls(totalRecords) {
     const totalPages = Math.ceil(totalRecords / appState.itemsPerPage);
@@ -370,9 +351,6 @@ function renderCurrentView() {
     updatePaginationControls(appState.filteredRecords.length);
 }
 
-
-// --- Event Handlers ---
-
 function setupEventListeners() {
     function setView(viewName) {
         appState.currentView = viewName;
@@ -396,8 +374,6 @@ function setupEventListeners() {
     elements.compactImageViewBtn.addEventListener('click', () => setView('compact-image'));
     elements.tileViewBtn.addEventListener('click', () => setView('tile'));
 
-
-    // --- Search with Debouncing ---
     let searchTimeout;
     elements.searchInput.addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
@@ -407,10 +383,7 @@ function setupEventListeners() {
             applyFiltersAndRender();
         }, SEARCH_DEBOUNCE_MS);
     });
-    // ----------------------------
 
-
-    // --- Pagination ---
     elements.itemsPerPageSelect.addEventListener('change', (e) => {
         appState.itemsPerPage = parseInt(e.target.value, 10);
         appState.currentPage = 1;
@@ -433,12 +406,7 @@ function setupEventListeners() {
             window.scrollTo({ top: 0, behavior: 'smooth' });
         }
     });
-    // ------------------
 
-
-    // --- Custom Filter Dropdown Event Listeners ---
-
-    // Generic function to toggle dropdown visibility
     function toggleDropdown(button, menu) {
         const isExpanded = button.getAttribute('aria-expanded') === 'true';
         if (isExpanded) {
@@ -446,7 +414,6 @@ function setupEventListeners() {
             button.setAttribute('aria-expanded', 'false');
             button.classList.remove('active');
         } else {
-            // Close all other dropdowns first
             closeAllDropdowns();
             menu.classList.add('show');
             button.setAttribute('aria-expanded', 'true');
@@ -454,7 +421,6 @@ function setupEventListeners() {
         }
     }
 
-    // Function to close all custom dropdowns
     function closeAllDropdowns() {
         const allDropdowns = document.querySelectorAll('.custom-dropdown');
         allDropdowns.forEach(dropdown => {
@@ -468,22 +434,19 @@ function setupEventListeners() {
         });
     }
 
-    // Click outside to close dropdowns
     document.addEventListener('click', (e) => {
         if (!e.target.closest('.custom-dropdown')) {
             closeAllDropdowns();
         }
     });
 
-    // Type Filter
     if (elements.typeFilterButton && elements.typeFilterMenu) {
         elements.typeFilterButton.addEventListener('click', (e) => {
-            e.stopPropagation(); // Prevent document click listener from closing it immediately
+            e.stopPropagation();
             toggleDropdown(elements.typeFilterButton, elements.typeFilterMenu);
         });
     }
 
-    // Institution Filter
     if (elements.institutionFilterButton && elements.institutionFilterMenu) {
         elements.institutionFilterButton.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -491,7 +454,6 @@ function setupEventListeners() {
         });
     }
 
-    // Date Filter
     if (elements.dateFilterButton && elements.dateFilterMenu) {
         elements.dateFilterButton.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -499,16 +461,11 @@ function setupEventListeners() {
         });
     }
 
-    // Handle checkbox changes for Type and Institution
-    // These listeners are attached dynamically after the menus are populated
-
-    // Handle radio button changes for Date
     if (elements.dateFilterRadios.length > 0) {
         elements.dateFilterRadios.forEach(radio => {
             radio.addEventListener('change', (e) => {
                 if (e.target.checked) {
                     appState.selectedDateRange = e.target.value;
-                    // Update button text
                     const selectedLabel = e.target.parentElement.textContent.trim();
                     if (elements.dateFilterButton) {
                         elements.dateFilterButton.textContent = selectedLabel || 'All Dates';
@@ -516,7 +473,6 @@ function setupEventListeners() {
                     appState.currentPage = 1;
                     applyFiltersAndRender();
                     updateUrlParams();
-                    // Close the dropdown menu after selection
                     if (elements.dateFilterMenu) {
                         elements.dateFilterMenu.classList.remove('show');
                         elements.dateFilterButton?.setAttribute('aria-expanded', 'false');
@@ -527,8 +483,6 @@ function setupEventListeners() {
         });
     }
 
-
-    // Clear Filters Button
     if (elements.clearFiltersBtn) {
         elements.clearFiltersBtn.addEventListener('click', () => {
             appState.selectedTypes = [];
@@ -536,18 +490,14 @@ function setupEventListeners() {
             appState.selectedDateRange = '';
             appState.currentPage = 1;
 
-            // Reset UI elements
-            // Uncheck all checkboxes in type filter
             if (elements.typeFilterMenu) {
                 const typeCheckboxes = elements.typeFilterMenu.querySelectorAll('input[type="checkbox"]');
                 typeCheckboxes.forEach(cb => cb.checked = false);
             }
-            // Uncheck all checkboxes in institution filter
             if (elements.institutionFilterMenu) {
                 const instCheckboxes = elements.institutionFilterMenu.querySelectorAll('input[type="checkbox"]');
                 instCheckboxes.forEach(cb => cb.checked = false);
             }
-            // Reset date filter radio buttons
             if (elements.dateFilterRadios.length > 0) {
                 elements.dateFilterRadios.forEach(radio => {
                     if (radio.value === '') {
@@ -565,12 +515,8 @@ function setupEventListeners() {
             updateUrlParams();
         });
     }
-    // -------------------------------------
 }
 
-// --- Filter Logic ---
-
-// Populate custom filter dropdown menus
 function populateCustomFilters() {
     if (!appState.allRecords.length) return;
 
@@ -591,16 +537,14 @@ function populateCustomFilters() {
     const sortedTypes = Array.from(types).sort();
     const sortedInstitutions = Array.from(institutions).sort();
 
-    // Populate Type Filter Menu
     if (elements.typeFilterMenu) {
-        elements.typeFilterMenu.innerHTML = ''; // Clear existing items
+        elements.typeFilterMenu.innerHTML = '';
         sortedTypes.forEach(type => {
             const li = document.createElement('li');
             const label = document.createElement('label');
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = type;
-            // Check if this type is currently selected
             if (appState.selectedTypes.includes(type)) {
                 checkbox.checked = true;
             }
@@ -623,20 +567,17 @@ function populateCustomFilters() {
             li.appendChild(label);
             elements.typeFilterMenu.appendChild(li);
         });
-        // Update hidden select to mirror state if needed by other parts
         updateHiddenSelect(elements.typeFilterSelect, sortedTypes, appState.selectedTypes);
     }
 
-    // Populate Institution Filter Menu
     if (elements.institutionFilterMenu) {
-        elements.institutionFilterMenu.innerHTML = ''; // Clear existing items
+        elements.institutionFilterMenu.innerHTML = '';
         sortedInstitutions.forEach(inst => {
             const li = document.createElement('li');
             const label = document.createElement('label');
             const checkbox = document.createElement('input');
             checkbox.type = 'checkbox';
             checkbox.value = inst;
-            // Check if this institution is currently selected
             if (appState.selectedInstitutions.includes(inst)) {
                 checkbox.checked = true;
             }
@@ -659,17 +600,13 @@ function populateCustomFilters() {
             li.appendChild(label);
             elements.institutionFilterMenu.appendChild(li);
         });
-        // Update hidden select
         updateHiddenSelect(elements.institutionFilterSelect, sortedInstitutions, appState.selectedInstitutions);
     }
 
-    // Date Filter Menu is pre-populated in HTML, no need to populate here.
-    // But we need to set the correct radio button based on initial state
     if (appState.selectedDateRange && elements.dateFilterRadios.length > 0) {
         elements.dateFilterRadios.forEach(radio => {
             if (radio.value === appState.selectedDateRange) {
                 radio.checked = true;
-                // Update button text
                 const selectedLabel = radio.parentElement.textContent.trim();
                 if (elements.dateFilterButton) {
                     elements.dateFilterButton.textContent = selectedLabel;
@@ -677,8 +614,6 @@ function populateCustomFilters() {
             }
         });
     }
-    // Update hidden date select
-    // Find the selected option text for the button
     if (elements.dateFilterSelect) {
         const selectedOption = Array.from(elements.dateFilterSelect.options).find(opt => opt.value === appState.selectedDateRange);
         if (selectedOption && elements.dateFilterButton) {
@@ -688,12 +623,9 @@ function populateCustomFilters() {
     }
 }
 
-// Helper to update hidden select elements to reflect current selections
 function updateHiddenSelect(selectElement, allOptions, selectedValues) {
     if (!selectElement) return;
-    // Clear existing options
     selectElement.innerHTML = '';
-    // Add all options
     allOptions.forEach(opt => {
         const option = document.createElement('option');
         option.value = opt;
@@ -705,8 +637,6 @@ function updateHiddenSelect(selectElement, allOptions, selectedValues) {
     });
 }
 
-
-// Apply search term and filters to get filteredRecords
 function filterRecords() {
     let results = [...appState.allRecords];
 
@@ -717,7 +647,6 @@ function filterRecords() {
         );
     }
 
-    // Apply Type filter (OR logic between selected types)
     if (appState.selectedTypes.length > 0) {
         results = results.filter(record => {
             const recordTypes = record.sourceResource?.type || [];
@@ -727,14 +656,12 @@ function filterRecords() {
         });
     }
 
-    // Apply Institution filter (OR logic between selected institutions)
     if (appState.selectedInstitutions.length > 0) {
         results = results.filter(record =>
             appState.selectedInstitutions.includes(record.provider?.name)
         );
     }
 
-    // Apply Date Range filter (single select)
     if (appState.selectedDateRange && DATE_RANGES[appState.selectedDateRange]) {
         const range = DATE_RANGES[appState.selectedDateRange];
         results = results.filter(record => {
@@ -756,15 +683,11 @@ function filterRecords() {
     return results;
 }
 
-// Central function to apply filters and re-render
 function applyFiltersAndRender() {
     appState.filteredRecords = filterRecords();
     renderCurrentView();
 }
-// ------------------
 
-
-// --- URL Parameter Handling ---
 function updateUrlParams() {
     const url = new URL(window.location);
     const params = url.searchParams;
@@ -790,17 +713,6 @@ function updateUrlParams() {
     window.history.replaceState({}, '', url);
 }
 
-// TODO: Implement reading initial filter state from URL on page load
-// function readUrlParams() { ... }
-// ----------------------------
-
-
-function filterAndRender() {
-    applyFiltersAndRender();
-}
-
-// --- Initialization ---
-
 async function initApp() {
     lucide.createIcons();
 
@@ -814,8 +726,8 @@ async function initApp() {
 
     if (fullDataset && Array.isArray(fullDataset)) {
         appState.allRecords = fullDataset;
-        populateCustomFilters(); // Populate custom dropdowns
-        appState.filteredRecords = filterRecords();
+        populateCustomFilters();
+        appState.filteredRecords = [...appState.allRecords];
         renderCurrentView();
         showElement(elements.contentArea);
         console.log("Application initialized successfully with demo data.");
@@ -823,15 +735,14 @@ async function initApp() {
          console.warn("Fetch did not return data and no error was set. This is unusual.");
          console.log("Falling back to local demo data generation.");
          appState.allRecords = generateDemoData(DEMO_RECORD_COUNT);
-         populateCustomFilters(); // Populate after fallback
-         appState.filteredRecords = filterRecords();
+         populateCustomFilters();
+         appState.filteredRecords = [...appState.allRecords];
          renderCurrentView();
          showElement(elements.contentArea);
          saveFullDatasetToCache(appState.allRecords);
     }
 }
 
-// --- Demo Data Generator (MVP Placeholder) ---
 function generateDemoData(count) {
     const types = ['image', 'text', 'physical object', 'moving image', 'sound', 'dataset'];
     const providers = [
@@ -900,7 +811,6 @@ function generateDemoData(count) {
         const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
         const dateString = `${year}-${month}-${day}`;
 
-
         data.push({
             id: `demo-record-${i}`,
             sourceResource: {
@@ -919,6 +829,4 @@ function generateDemoData(count) {
     return data;
 }
 
-
-// --- Start the App ---
 document.addEventListener('DOMContentLoaded', initApp);
