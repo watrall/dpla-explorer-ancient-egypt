@@ -8,12 +8,12 @@
     <!-- Custom styles for specific elements like the footer icon -->
     <style>
         .footer-heart-icon {
-            width: 1em; /* Relative size */
-            height: 1em; /* Relative size */
-            color: red; /* Red color */
-            display: inline-block; /* Aligns with text */
-            vertical-align: middle; /* Aligns vertically with text */
-            margin: 0 0.2em; /* Small margin for spacing */
+            width: 1em;
+            height: 1em;
+            color: red;
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 0.2em;
         }
     </style>
     <script src="https://unpkg.com/lucide@latest"></script>
@@ -22,18 +22,48 @@
     <div class="container">
         <header>
             <h1>DPLA Explorer: Ancient Egypt</h1>
-            <div class="controls">
-                <div class="search-container">
-                    <div class="search-input-wrapper">
-                        <input type="text" id="searchInput" placeholder="Search within results...">
-                        <i data-lucide="search" class="search-icon"></i>
-                    </div>
+            <!-- Controls (search, filters, view toggles) will be moved to main area -->
+        </header>
+
+        <main>
+            <!-- --- Moved Search Bar Here --- -->
+            <div class="search-container">
+                <div class="search-input-wrapper">
+                    <input type="text" id="searchInput" placeholder="Search within results...">
+                    <i data-lucide="search" class="search-icon"></i>
                 </div>
+            </div>
+            <!-- ---------------------------- -->
+
+            <!-- --- New Toolbar for Filters and View Toggles --- -->
+            <div class="toolbar">
+                <!-- Faceted Filters -->
+                <div class="filters">
+                    <select id="typeFilter">
+                        <option value="">All Types</option>
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <select id="institutionFilter">
+                        <option value="">All Institutions</option>
+                        <!-- Options will be populated by JS -->
+                    </select>
+                    <select id="dateFilter">
+                        <option value="">All Dates</option>
+                        <!-- Predefined date range options -->
+                        <option value="before-1800">Before 1800</option>
+                        <option value="1800-1900">1800-1900</option>
+                        <option value="1900-1950">1900-1950</option>
+                        <option value="1950-2000">1950-2000</option>
+                        <option value="after-2000">After 2000</option>
+                    </select>
+                    <button id="clearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
+                </div>
+                <!-- View Toggle Buttons (Moved and will be resized via CSS) -->
                 <div class="view-toggle">
                     <button id="listViewBtn" aria-label="List View" class="view-btn">
                          <i data-lucide="align-justify"></i>
                     </button>
-                    <button id="compactImageViewBtn" aria-label="Compact Image View" class="view-btn active">
+                    <button id="compactImageViewBtn" aria-label="Compact Image View" class="view-btn">
                          <i data-lucide="layout-list"></i>
                     </button>
                     <button id="tileViewBtn" aria-label="Tile View" class="view-btn">
@@ -41,9 +71,8 @@
                     </button>
                 </div>
             </div>
-        </header>
+            <!-- ---------------------------------------------------- -->
 
-        <main>
             <div id="loadingSpinner" class="loading hidden">
                 <div class="spinner"></div>
                 <p>Loading records...</p>
