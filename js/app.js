@@ -26,8 +26,8 @@ let appState = {
     itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
     searchTerm: '',
     // --- Filter State ---
-    selectedType: '',
-    selectedInstitution: '',
+    selectedTypes: [],
+    selectedInstitutions: [],
     selectedDateRange: '',
     // ------------------
     isLoading: false,
@@ -49,12 +49,19 @@ const elements = {
     nextPageBtn: document.getElementById('nextPageBtn'),
     currentPageNum: document.getElementById('currentPageNum'),
     totalPagesNum: document.getElementById('totalPagesNum'),
-    // --- New Filter Elements ---
-    typeFilter: document.getElementById('typeFilter'),
-    institutionFilter: document.getElementById('institutionFilter'),
-    dateFilter: document.getElementById('dateFilter'),
+    // --- Filter Elements (Custom UI) ---
+    typeFilterButton: document.querySelector('#typeFilterContainer .dropdown-button'),
+    typeFilterMenu: document.querySelector('#typeFilterContainer .dropdown-menu'),
+    typeFilterSelect: document.getElementById('typeFilter'), // Hidden select
+    institutionFilterButton: document.querySelector('#institutionFilterContainer .dropdown-button'),
+    institutionFilterMenu: document.querySelector('#institutionFilterContainer .dropdown-menu'),
+    institutionFilterSelect: document.getElementById('institutionFilter'), // Hidden select
+    dateFilterButton: document.querySelector('#dateFilterContainer .dropdown-button'),
+    dateFilterMenu: document.querySelector('#dateFilterContainer .dropdown-menu'),
+    dateFilterSelect: document.getElementById('dateFilter'), // Hidden select
+    dateFilterRadios: document.querySelectorAll('input[name="dateFilterGroup"]'),
     clearFiltersBtn: document.getElementById('clearFiltersBtn')
-    // -------------------------
+    // ----------------------------------
 };
 
 // --- Utility Functions ---
@@ -322,7 +329,6 @@ function renderCompactImageView(records) {
 // --- No Records Found Message ---
 function renderNoRecordsMessage() {
     elements.contentArea.innerHTML = '<p class="no-records-message">No records found. Please adjust your search or filter terms.</p>';
-    // Ensure pagination is hidden when no records
     hideElement(elements.paginationControls);
 }
 // --------------------------------
@@ -348,10 +354,8 @@ function renderCurrentView() {
     const end = start + appState.itemsPerPage;
     const recordsToShow = appState.filteredRecords.slice(start, end);
 
-    // Handle no records scenario
     if (recordsToShow.length === 0) {
         renderNoRecordsMessage();
-        // Update pagination to reflect 0 pages
         updatePaginationControls(0);
         return;
     }
@@ -400,7 +404,7 @@ function setupEventListeners() {
         searchTimeout = setTimeout(() => {
             appState.searchTerm = e.target.value.toLowerCase();
             appState.currentPage = 1;
-            applyFiltersAndRender(); // Use the new filter-aware function
+            applyFiltersAndRender();
         }, SEARCH_DEBOUNCE_MS);
     });
     // ----------------------------
@@ -432,46 +436,133 @@ function setupEventListeners() {
     // ------------------
 
 
-    // --- Faceted Filter Event Listeners ---
-    if (elements.typeFilter) {
-        elements.typeFilter.addEventListener('change', (e) => {
-            appState.selectedType = e.target.value;
-            appState.currentPage = 1;
-            applyFiltersAndRender();
-            updateUrlParams(); // Update URL on filter change
+    // --- Custom Filter Dropdown Event Listeners ---
+
+    // Generic function to toggle dropdown visibility
+    function toggleDropdown(button, menu) {
+        const isExpanded = button.getAttribute('aria-expanded') === 'true';
+        if (isExpanded) {
+            menu.classList.remove('show');
+            button.setAttribute('aria-expanded', 'false');
+            button.classList.remove('active');
+        } else {
+            // Close all other dropdowns first
+            closeAllDropdowns();
+            menu.classList.add('show');
+            button.setAttribute('aria-expanded', 'true');
+            button.classList.add('active');
+        }
+    }
+
+    // Function to close all custom dropdowns
+    function closeAllDropdowns() {
+        const allDropdowns = document.querySelectorAll('.custom-dropdown');
+        allDropdowns.forEach(dropdown => {
+            const btn = dropdown.querySelector('.dropdown-button');
+            const mnu = dropdown.querySelector('.dropdown-menu');
+            if (btn && mnu) {
+                mnu.classList.remove('show');
+                btn.setAttribute('aria-expanded', 'false');
+                btn.classList.remove('active');
+            }
         });
     }
 
-    if (elements.institutionFilter) {
-        elements.institutionFilter.addEventListener('change', (e) => {
-            appState.selectedInstitution = e.target.value;
-            appState.currentPage = 1;
-            applyFiltersAndRender();
-            updateUrlParams(); // Update URL on filter change
+    // Click outside to close dropdowns
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.custom-dropdown')) {
+            closeAllDropdowns();
+        }
+    });
+
+    // Type Filter
+    if (elements.typeFilterButton && elements.typeFilterMenu) {
+        elements.typeFilterButton.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent document click listener from closing it immediately
+            toggleDropdown(elements.typeFilterButton, elements.typeFilterMenu);
         });
     }
 
-    if (elements.dateFilter) {
-        elements.dateFilter.addEventListener('change', (e) => {
-            appState.selectedDateRange = e.target.value;
-            appState.currentPage = 1;
-            applyFiltersAndRender();
-            updateUrlParams(); // Update URL on filter change
+    // Institution Filter
+    if (elements.institutionFilterButton && elements.institutionFilterMenu) {
+        elements.institutionFilterButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleDropdown(elements.institutionFilterButton, elements.institutionFilterMenu);
         });
     }
 
+    // Date Filter
+    if (elements.dateFilterButton && elements.dateFilterMenu) {
+        elements.dateFilterButton.addEventListener('click', (e) => {
+            e.stopPropagation();
+            toggleDropdown(elements.dateFilterButton, elements.dateFilterMenu);
+        });
+    }
+
+    // Handle checkbox changes for Type and Institution
+    // These listeners are attached dynamically after the menus are populated
+
+    // Handle radio button changes for Date
+    if (elements.dateFilterRadios.length > 0) {
+        elements.dateFilterRadios.forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    appState.selectedDateRange = e.target.value;
+                    // Update button text
+                    const selectedLabel = e.target.parentElement.textContent.trim();
+                    if (elements.dateFilterButton) {
+                        elements.dateFilterButton.textContent = selectedLabel || 'All Dates';
+                    }
+                    appState.currentPage = 1;
+                    applyFiltersAndRender();
+                    updateUrlParams();
+                    // Close the dropdown menu after selection
+                    if (elements.dateFilterMenu) {
+                        elements.dateFilterMenu.classList.remove('show');
+                        elements.dateFilterButton?.setAttribute('aria-expanded', 'false');
+                        elements.dateFilterButton?.classList.remove('active');
+                    }
+                }
+            });
+        });
+    }
+
+
+    // Clear Filters Button
     if (elements.clearFiltersBtn) {
         elements.clearFiltersBtn.addEventListener('click', () => {
-            appState.selectedType = '';
-            appState.selectedInstitution = '';
+            appState.selectedTypes = [];
+            appState.selectedInstitutions = [];
             appState.selectedDateRange = '';
             appState.currentPage = 1;
-            // Reset dropdowns
-            if (elements.typeFilter) elements.typeFilter.value = '';
-            if (elements.institutionFilter) elements.institutionFilter.value = '';
-            if (elements.dateFilter) elements.dateFilter.value = '';
+
+            // Reset UI elements
+            // Uncheck all checkboxes in type filter
+            if (elements.typeFilterMenu) {
+                const typeCheckboxes = elements.typeFilterMenu.querySelectorAll('input[type="checkbox"]');
+                typeCheckboxes.forEach(cb => cb.checked = false);
+            }
+            // Uncheck all checkboxes in institution filter
+            if (elements.institutionFilterMenu) {
+                const instCheckboxes = elements.institutionFilterMenu.querySelectorAll('input[type="checkbox"]');
+                instCheckboxes.forEach(cb => cb.checked = false);
+            }
+            // Reset date filter radio buttons
+            if (elements.dateFilterRadios.length > 0) {
+                elements.dateFilterRadios.forEach(radio => {
+                    if (radio.value === '') {
+                        radio.checked = true;
+                        if (elements.dateFilterButton) {
+                            elements.dateFilterButton.textContent = 'All Dates';
+                        }
+                    } else {
+                        radio.checked = false;
+                    }
+                });
+            }
+
             applyFiltersAndRender();
-            updateUrlParams(); // Update URL to remove filter params
+            updateUrlParams();
         });
     }
     // -------------------------------------
@@ -479,64 +570,146 @@ function setupEventListeners() {
 
 // --- Filter Logic ---
 
-// Populate filter dropdowns with unique values from the dataset
-function populateFilters() {
+// Populate custom filter dropdown menus
+function populateCustomFilters() {
     if (!appState.allRecords.length) return;
 
     const types = new Set();
     const institutions = new Set();
 
     appState.allRecords.forEach(record => {
-        // Extract types
         if (record.sourceResource?.type) {
             record.sourceResource.type.forEach(t => {
                 if (t) types.add(t.trim());
             });
         }
-        // Extract institutions (dataProvider.name)
         if (record.provider?.name) {
             institutions.add(record.provider.name.trim());
         }
     });
 
-    // Populate Type Filter
-    if (elements.typeFilter) {
-        // Clear existing options except the default "All Types"
-        while (elements.typeFilter.options.length > 1) {
-            elements.typeFilter.remove(1);
-        }
-        const sortedTypes = Array.from(types).sort();
+    const sortedTypes = Array.from(types).sort();
+    const sortedInstitutions = Array.from(institutions).sort();
+
+    // Populate Type Filter Menu
+    if (elements.typeFilterMenu) {
+        elements.typeFilterMenu.innerHTML = ''; // Clear existing items
         sortedTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type;
-            elements.typeFilter.appendChild(option);
+            const li = document.createElement('li');
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = type;
+            // Check if this type is currently selected
+            if (appState.selectedTypes.includes(type)) {
+                checkbox.checked = true;
+            }
+
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    if (!appState.selectedTypes.includes(e.target.value)) {
+                        appState.selectedTypes.push(e.target.value);
+                    }
+                } else {
+                    appState.selectedTypes = appState.selectedTypes.filter(t => t !== e.target.value);
+                }
+                appState.currentPage = 1;
+                applyFiltersAndRender();
+                updateUrlParams();
+            });
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(` ${type}`));
+            li.appendChild(label);
+            elements.typeFilterMenu.appendChild(li);
         });
+        // Update hidden select to mirror state if needed by other parts
+        updateHiddenSelect(elements.typeFilterSelect, sortedTypes, appState.selectedTypes);
     }
 
-    // Populate Institution Filter
-    if (elements.institutionFilter) {
-        // Clear existing options except the default "All Institutions"
-        while (elements.institutionFilter.options.length > 1) {
-            elements.institutionFilter.remove(1);
-        }
-        const sortedInstitutions = Array.from(institutions).sort();
+    // Populate Institution Filter Menu
+    if (elements.institutionFilterMenu) {
+        elements.institutionFilterMenu.innerHTML = ''; // Clear existing items
         sortedInstitutions.forEach(inst => {
-            const option = document.createElement('option');
-            option.value = inst;
-            option.textContent = inst;
-            elements.institutionFilter.appendChild(option);
+            const li = document.createElement('li');
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = inst;
+            // Check if this institution is currently selected
+            if (appState.selectedInstitutions.includes(inst)) {
+                checkbox.checked = true;
+            }
+
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    if (!appState.selectedInstitutions.includes(e.target.value)) {
+                        appState.selectedInstitutions.push(e.target.value);
+                    }
+                } else {
+                    appState.selectedInstitutions = appState.selectedInstitutions.filter(i => i !== e.target.value);
+                }
+                appState.currentPage = 1;
+                applyFiltersAndRender();
+                updateUrlParams();
+            });
+
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(` ${inst}`));
+            li.appendChild(label);
+            elements.institutionFilterMenu.appendChild(li);
         });
+        // Update hidden select
+        updateHiddenSelect(elements.institutionFilterSelect, sortedInstitutions, appState.selectedInstitutions);
     }
 
-    // Date Filter options are predefined in HTML, no need to populate here.
+    // Date Filter Menu is pre-populated in HTML, no need to populate here.
+    // But we need to set the correct radio button based on initial state
+    if (appState.selectedDateRange && elements.dateFilterRadios.length > 0) {
+        elements.dateFilterRadios.forEach(radio => {
+            if (radio.value === appState.selectedDateRange) {
+                radio.checked = true;
+                // Update button text
+                const selectedLabel = radio.parentElement.textContent.trim();
+                if (elements.dateFilterButton) {
+                    elements.dateFilterButton.textContent = selectedLabel;
+                }
+            }
+        });
+    }
+    // Update hidden date select
+    // Find the selected option text for the button
+    if (elements.dateFilterSelect) {
+        const selectedOption = Array.from(elements.dateFilterSelect.options).find(opt => opt.value === appState.selectedDateRange);
+        if (selectedOption && elements.dateFilterButton) {
+            elements.dateFilterButton.textContent = selectedOption.textContent;
+        }
+        elements.dateFilterSelect.value = appState.selectedDateRange;
+    }
 }
+
+// Helper to update hidden select elements to reflect current selections
+function updateHiddenSelect(selectElement, allOptions, selectedValues) {
+    if (!selectElement) return;
+    // Clear existing options
+    selectElement.innerHTML = '';
+    // Add all options
+    allOptions.forEach(opt => {
+        const option = document.createElement('option');
+        option.value = opt;
+        option.textContent = opt;
+        if (selectedValues.includes(opt)) {
+            option.selected = true;
+        }
+        selectElement.appendChild(option);
+    });
+}
+
 
 // Apply search term and filters to get filteredRecords
 function filterRecords() {
     let results = [...appState.allRecords];
 
-    // 1. Apply search term filter
     if (appState.searchTerm) {
         results = results.filter(record =>
             (record.sourceResource?.title?.[0]?.toLowerCase().includes(appState.searchTerm)) ||
@@ -544,38 +717,36 @@ function filterRecords() {
         );
     }
 
-    // 2. Apply Type filter
-    if (appState.selectedType) {
+    // Apply Type filter (OR logic between selected types)
+    if (appState.selectedTypes.length > 0) {
+        results = results.filter(record => {
+            const recordTypes = record.sourceResource?.type || [];
+            return appState.selectedTypes.some(selectedType =>
+                recordTypes.includes(selectedType)
+            );
+        });
+    }
+
+    // Apply Institution filter (OR logic between selected institutions)
+    if (appState.selectedInstitutions.length > 0) {
         results = results.filter(record =>
-            record.sourceResource?.type &&
-            record.sourceResource.type.includes(appState.selectedType)
+            appState.selectedInstitutions.includes(record.provider?.name)
         );
     }
 
-    // 3. Apply Institution filter
-    if (appState.selectedInstitution) {
-        results = results.filter(record =>
-            record.provider?.name === appState.selectedInstitution
-        );
-    }
-
-    // 4. Apply Date Range filter
+    // Apply Date Range filter (single select)
     if (appState.selectedDateRange && DATE_RANGES[appState.selectedDateRange]) {
         const range = DATE_RANGES[appState.selectedDateRange];
         results = results.filter(record => {
-            // Try to get a usable date string from sourceResource.date
             const dateStr = record.sourceResource?.date?.[0];
-            if (!dateStr) return false; // If no date, it doesn't match any range filter
+            if (!dateStr) return false;
 
-            // Attempt to extract a year from the date string
-            // This is a simple extraction, real API data might need more robust parsing
             const yearMatch = dateStr.match(/\d{4}/);
-            if (!yearMatch) return false; // If no 4-digit year found, can't filter
+            if (!yearMatch) return false;
 
             const year = parseInt(yearMatch[0], 10);
             if (isNaN(year)) return false;
 
-            // Check if year falls within the selected range
             const isAfterStart = range.start ? year >= range.start : true;
             const isBeforeEnd = range.end ? year <= range.end : true;
             return isAfterStart && isBeforeEnd;
@@ -598,17 +769,16 @@ function updateUrlParams() {
     const url = new URL(window.location);
     const params = url.searchParams;
 
-    // Update or remove params based on current state
-    if (appState.selectedType) {
-        params.set('type', appState.selectedType);
+    if (appState.selectedTypes.length > 0) {
+        params.set('types', appState.selectedTypes.join(','));
     } else {
-        params.delete('type');
+        params.delete('types');
     }
 
-    if (appState.selectedInstitution) {
-        params.set('institution', appState.selectedInstitution);
+    if (appState.selectedInstitutions.length > 0) {
+        params.set('institutions', appState.selectedInstitutions.join(','));
     } else {
-        params.delete('institution');
+        params.delete('institutions');
     }
 
     if (appState.selectedDateRange) {
@@ -617,20 +787,15 @@ function updateUrlParams() {
         params.delete('date');
     }
 
-    // Note: Updating the URL without page reload
     window.history.replaceState({}, '', url);
 }
 
 // TODO: Implement reading initial filter state from URL on page load
-// This requires integrating with the data loading sequence in initApp
 // function readUrlParams() { ... }
 // ----------------------------
 
 
 function filterAndRender() {
-    // This function is now largely superseded by applyFiltersAndRender
-    // but might still be called by legacy parts of the code or indirectly.
-    // We can redirect it to the new function.
     applyFiltersAndRender();
 }
 
@@ -649,12 +814,8 @@ async function initApp() {
 
     if (fullDataset && Array.isArray(fullDataset)) {
         appState.allRecords = fullDataset;
-        // --- Populate Filters after data is loaded ---
-        populateFilters();
-        // --------------------------------------------
-        // --- Apply initial filters (including from URL if implemented) ---
-        appState.filteredRecords = filterRecords(); // Apply initial (empty) filters
-        // ----------------------------------------------------------------
+        populateCustomFilters(); // Populate custom dropdowns
+        appState.filteredRecords = filterRecords();
         renderCurrentView();
         showElement(elements.contentArea);
         console.log("Application initialized successfully with demo data.");
@@ -662,9 +823,7 @@ async function initApp() {
          console.warn("Fetch did not return data and no error was set. This is unusual.");
          console.log("Falling back to local demo data generation.");
          appState.allRecords = generateDemoData(DEMO_RECORD_COUNT);
-         // --- Populate Filters after fallback data is generated ---
-         populateFilters();
-         // --------------------------------------------------------
+         populateCustomFilters(); // Populate after fallback
          appState.filteredRecords = filterRecords();
          renderCurrentView();
          showElement(elements.contentArea);
@@ -736,11 +895,10 @@ function generateDemoData(count) {
         const hasImage = Math.random() > 0.2;
         const imageUrl = hasImage ? `https://picsum.photos/seed/egypt${i}/150/100` : null;
 
-        // Simulate a date for filtering
-        const year = Math.floor(Math.random() * (2020 - 1000 + 1)) + 1000; // Random year between 1000 and 2020
+        const year = Math.floor(Math.random() * (2020 - 1000 + 1)) + 1000;
         const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
-        const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0'); // Simplified day
-        const dateString = `${year}-${month}-${day}`; // YYYY-MM-DD format
+        const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
+        const dateString = `${year}-${month}-${day}`;
 
 
         data.push({
@@ -749,7 +907,7 @@ function generateDemoData(count) {
                 title: [title],
                 description: [description],
                 type: [type],
-                date: [dateString] // Add date for filtering
+                date: [dateString]
             },
             provider: {
                 name: provider
