@@ -22,34 +22,30 @@
     <div class="container">
         <header>
             <h1>DPLA Explorer: Ancient Egypt</h1>
-            <!-- Controls (search, filters, view toggles) will be moved to main area -->
         </header>
 
         <main>
-            <!-- --- Moved Search Bar Here --- -->
-            <div class="search-container">
-                <div class="search-input-wrapper">
-                    <input type="text" id="searchInput" placeholder="Search within results...">
-                    <i data-lucide="search" class="search-icon"></i>
-                </div>
-            </div>
-            <!-- ---------------------------- -->
-
-            <!-- --- New Toolbar for Filters and View Toggles --- -->
+            <!-- --- New Toolbar for Search, Filters and View Toggles --- -->
             <div class="toolbar">
+                <!-- Search Bar (Moved inside toolbar) -->
+                <div class="search-container">
+                    <div class="search-input-wrapper">
+                        <input type="text" id="searchInput" placeholder="Search within results...">
+                        <i data-lucide="search" class="search-icon"></i>
+                    </div>
+                </div>
                 <!-- Faceted Filters -->
                 <div class="filters">
-                    <select id="typeFilter">
-                        <option value="">All Types</option>
+                    <select id="typeFilter" multiple title="Select one or more types">
+                        <option value="" disabled>Select Types...</option>
                         <!-- Options will be populated by JS -->
                     </select>
-                    <select id="institutionFilter">
-                        <option value="">All Institutions</option>
+                    <select id="institutionFilter" multiple title="Select one or more institutions">
+                        <option value="" disabled>Select Institutions...</option>
                         <!-- Options will be populated by JS -->
                     </select>
-                    <select id="dateFilter">
+                    <select id="dateFilter" title="Select a date range">
                         <option value="">All Dates</option>
-                        <!-- Predefined date range options -->
                         <option value="before-1800">Before 1800</option>
                         <option value="1800-1900">1800-1900</option>
                         <option value="1900-1950">1900-1950</option>
@@ -58,7 +54,7 @@
                     </select>
                     <button id="clearFiltersBtn" class="clear-filters-btn">Clear Filters</button>
                 </div>
-                <!-- View Toggle Buttons (Moved and will be resized via CSS) -->
+                <!-- View Toggle Buttons -->
                 <div class="view-toggle">
                     <button id="listViewBtn" aria-label="List View" class="view-btn">
                          <i data-lucide="align-justify"></i>
