@@ -44,17 +44,23 @@ body {
   margin: 0;
 }
 
+/* --- Hero Header Styling --- */
 .hero-header {
   position: relative;
-  background-image: url('../assets/background.jpg'); /* Update the path to the background image */
+  /* --- Updated background image path --- */
+  background-image: url('../assets/background.jpg');
+  /* ---------------------------------- */
   background-size: cover;
   background-position: center;
   background-repeat: no-repeat;
-  height: 400px; /* Adjust height as needed */
+  height: 400px;
   display: flex;
   justify-content: center;
   align-items: center;
   text-align: center;
+  /* --- Use Lora font for hero header --- */
+  font-family: 'Lora', serif;
+  /* ---------------------------------- */
 }
 
 .overlay {
@@ -69,35 +75,37 @@ body {
 .hero-content {
   z-index: 1;
   color: white;
+  /* --- Constrain width of hero content --- */
+  max-width: 1200px; /* Match container max-width or adjust as needed */
+  padding: 0 20px; /* Add some padding for smaller screens */
+  margin: 0 auto;
+  /* ------------------------------------- */
 }
 
 .hero-content h1 {
+  /* --- Make main title bold --- */
+  font-weight: 700; /* Explicitly set bold weight */
+  /* --------------------------- */
   font-size: 3rem;
-  font-weight: bold;
   margin-bottom: 1rem;
+  line-height: 1.2; /* Improve line height for large text */
 }
 
 .hero-content p {
   font-size: 1.5rem;
-  margin-bottom: 2rem;
+  /* --- Constrain width of subtitle --- */
+  max-width: 800px; /* Adjust this value as needed */
+  margin: 0 auto 2rem; /* Center the paragraph */
+  /* ---------------------------------- */
+  line-height: 1.4; /* Improve line height for subtitle */
 }
+/* -------------------------- */
+
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
   padding: 20px;
-}
-
-/* Header */
-header {
-  margin-bottom: 30px;
-  text-align: center;
-}
-
-header h1 {
-  margin-bottom: 20px;
-  font-weight: 300;
-  color: var(--primary-color);
 }
 
 /* Main Content Area */
@@ -108,9 +116,7 @@ main {
 
 /* --- Search Container & Input Styling (Inside Toolbar) --- */
 .toolbar .search-container {
-  /* --- Increased width by 20% --- */
-  max-width: 360px; /* 20% more than 300px */
-  /* ---------------------------- */
+  max-width: 360px;
   flex: 1;
   margin-bottom: 0;
 }
@@ -121,9 +127,7 @@ main {
 }
 
 .toolbar .search-input-wrapper input {
-  /* --- Adjusted height to match other toolbar items --- */
-  padding: 7px 30px 7px 35px; /* Reduced top/bottom padding */
-  /* ---------------------------------------------------- */
+  padding: 7px 30px 7px 35px;
   background-color: #ffffff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
@@ -178,14 +182,12 @@ main {
 .custom-dropdown {
   position: relative;
   display: inline-block;
-  min-width: 150px; /* Minimum width for dropdown */
+  min-width: 150px;
 }
 
 .custom-dropdown .dropdown-button {
   width: 100%;
-  /* --- Match height with search input --- */
-  padding: 7px 12px; /* Adjusted padding */
-  /* ------------------------------------- */
+  padding: 7px 12px;
   background-color: var(--dropdown-bg);
   border: 1px solid var(--dropdown-border);
   border-radius: 4px;
@@ -203,7 +205,7 @@ main {
 }
 
 .custom-dropdown .dropdown-button::after {
-  content: '▼'; /* Simple down arrow */
+  content: '▼';
   font-size: 0.8em;
   margin-left: 8px;
   color: #777;
@@ -265,16 +267,14 @@ main {
 }
 
 .custom-dropdown .dropdown-menu input[type="radio"] {
-    accent-color: var(--primary-color); /* Style radio buttons */
+    accent-color: var(--primary-color);
 }
 /* -------------------------------- */
 
 
 /* Style for Clear Filters button */
 .toolbar .clear-filters-btn {
-  /* --- Match height with search input and dropdown buttons --- */
-  padding: 7px 10px; /* Adjusted padding */
-  /* ---------------------------------------------------------- */
+  padding: 7px 10px;
   border: 1px solid var(--border-color);
   border-radius: 4px;
   background-color: #fff;
@@ -295,26 +295,21 @@ main {
   display: flex;
   gap: 5px;
   margin-left: auto;
+  flex-shrink: 0;
 }
 
-/* --- Reduced padding for view buttons to match height ---
-   All other elements in the toolbar (search input, dropdown buttons, clear button)
-   have a padding-top/bottom of 7px. Let's make the view buttons match that.
-*/
+/* --- Reduced padding for view buttons to match height --- */
 .toolbar .view-btn {
   background-color: #fff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  /* --- Updated Padding to match height --- */
-  padding: 7px 10px; /* Reduced vertical padding to match 32px height */
-  /* -------------------------------------- */
+  padding: 7px 10px; /* Reduced vertical padding */
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, border-color 0.2s ease;
   flex-shrink: 0;
-  /* Ensure consistent line-height */
   line-height: 1;
 }
 
@@ -484,16 +479,18 @@ main {
   text-overflow: ellipsis;
 }
 
+/* --- Updated Institution Column Styling (Allows Wrapping and Left-Justified) --- */
 .compact-image-item .civ-col-institution {
   flex: 1;
   padding: 0 10px;
   font-size: 0.85em;
   color: #777;
   font-style: italic;
-  text-align: left;
-  white-space: normal;
-  word-break: break-word;
+  text-align: left; /* Changed to left */
+  white-space: normal; /* Allow wrapping */
+  word-break: break-word; /* Handle long words */
 }
+/* ----------------------------------------------------------------------------- */
 
 .compact-image-item .civ-col-link {
   flex: 0 0 40px;
@@ -735,15 +732,32 @@ main {
   white-space: nowrap;
 }
 
-/* Footer */
+/* --- Footer --- */
 footer {
   text-align: center;
+  /* --- Reduced top margin to remove one line --- */
   padding: 20px 0;
-  margin-top: 20px;
+  margin-top: 10px; /* Reduced from 20px */
+  /* ------------------------------------------- */
   border-top: 1px solid var(--border-color);
   color: #777;
   font-size: 0.9em;
 }
+
+/* --- Reverted Footer Link Styling --- */
+/* Remove the explicit color:white rule and use default link styles */
+footer p a {
+  /* color: white; */ /* Removed this line */
+  color: var(--primary-color); /* Use primary color for links in footer */
+  text-decoration: none; /* Ensure no underline by default if global a has it */
+}
+footer p a:hover {
+  /* color: white; */ /* Removed this line */
+  text-decoration: underline; /* Underline on hover */
+}
+/* ---------------------------------- */
+/* --------------- */
+
 
 /* Responsive Design */
 @media (max-width: 768px) {
@@ -810,7 +824,7 @@ footer {
   }
 
   .tile-image-container {
-    height: 110px;
+    height: 130px;
   }
 
   .pagination {
@@ -851,4 +865,19 @@ footer {
   .tile-content .view-link {
     font-size: 0.75em;
   }
+
+  /* --- Adjust hero header for small screens --- */
+  .hero-header {
+    height: 300px; /* Reduce height on small screens */
+  }
+
+  .hero-content h1 {
+    font-size: 2.2rem; /* Reduce font size */
+  }
+
+  .hero-content p {
+    font-size: 1.2rem; /* Reduce font size */
+    max-width: 90%; /* Wider constraint relative to screen */
+  }
+  /* ------------------------------------------ */
 }
