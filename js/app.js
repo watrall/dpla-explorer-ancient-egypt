@@ -1,11 +1,16 @@
 // js/app.js
 
-const API_PROXY_URL = 'https://YOUR_FUNCTION_REGION.functions.app/dpla-proxy';
+// --- Configuration ---
+// --- UPDATE THIS TO YOUR DIGITALOCEAN FUNCTION INVOKE URL ---
+const API_PROXY_URL = 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-db103013-6f04-45ed-9d08-869494cf2959/default/dpla-api-proxy';
+// -------------------------------------------------------------------------
+
 const CACHE_DURATION_HOURS = 24;
 const DEFAULT_ITEMS_PER_PAGE = 20;
-const SEARCH_DEBOUNCE_MS = 300;
-const DEMO_RECORD_COUNT = 200;
+const SEARCH_DEBOUNCE_MS = 300; // Debounce search input
+const DEMO_RECORD_COUNT = 200; // Total number of demo records to generate
 
+// --- Date Range Definitions ---
 const DATE_RANGES = {
     "before-1800": { start: null, end: 1799 },
     "1800-1900": { start: 1800, end: 1900 },
@@ -13,24 +18,33 @@ const DATE_RANGES = {
     "1950-2000": { start: 1950, end: 2000 },
     "after-2000": { start: 2001, end: null }
 };
+// ----------------------------
 
+// --- State Management ---
 let appState = {
     allRecords: [],
     filteredRecords: [],
-    currentView: 'tile',
+    // --- Update Initial View to Compact Image ---
+    currentView: 'compact-image', // 'list', 'compact-image', or 'tile' // <-- Changed default
+    // -----------------------------------------
     currentPage: 1,
     itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
     searchTerm: '',
+    // --- Filter State ---
     selectedTypes: [],
     selectedInstitutions: [],
     selectedDateRange: '',
+    // ------------------
     isLoading: false,
     hasError: false
 };
 
+// --- DOM Elements ---
 const elements = {
     listViewBtn: document.getElementById('listViewBtn'),
-    compactImageViewBtn: document.getElementById('compactImageViewBtn'),
+    // --- Add Compact Image Button Element ---
+    compactImageViewBtn: document.getElementById('compactImageViewBtn'), // <-- Added
+    // -------------------------------------
     tileViewBtn: document.getElementById('tileViewBtn'),
     searchInput: document.getElementById('searchInput'),
     contentArea: document.getElementById('contentArea'),
@@ -42,18 +56,22 @@ const elements = {
     nextPageBtn: document.getElementById('nextPageBtn'),
     currentPageNum: document.getElementById('currentPageNum'),
     totalPagesNum: document.getElementById('totalPagesNum'),
+    // --- Filter Elements (Custom UI) ---
     typeFilterButton: document.querySelector('#typeFilterContainer .dropdown-button'),
     typeFilterMenu: document.querySelector('#typeFilterContainer .dropdown-menu'),
-    typeFilterSelect: document.getElementById('typeFilter'),
+    typeFilterSelect: document.getElementById('typeFilter'), // Hidden select
     institutionFilterButton: document.querySelector('#institutionFilterContainer .dropdown-button'),
     institutionFilterMenu: document.querySelector('#institutionFilterContainer .dropdown-menu'),
-    institutionFilterSelect: document.getElementById('institutionFilter'),
+    institutionFilterSelect: document.getElementById('institutionFilter'), // Hidden select
     dateFilterButton: document.querySelector('#dateFilterContainer .dropdown-button'),
     dateFilterMenu: document.querySelector('#dateFilterContainer .dropdown-menu'),
-    dateFilterSelect: document.getElementById('dateFilter'),
+    dateFilterSelect: document.getElementById('dateFilter'), // Hidden select
     dateFilterRadios: document.querySelectorAll('input[name="dateFilterGroup"]'),
     clearFiltersBtn: document.getElementById('clearFiltersBtn')
+    // ----------------------------------
 };
+
+// --- Utility Functions ---
 
 function showElement(el) {
     el.classList.remove('hidden');
@@ -87,6 +105,7 @@ function setError(hasError) {
     }
 }
 
+// --- Cache Management (using localStorage) ---
 const FULL_DATASET_CACHE_KEY = 'dpla_egypt_full_dataset_demo';
 
 function isCacheValid(cachedItem) {
@@ -131,6 +150,8 @@ function loadFullDatasetFromCache() {
     }
 }
 
+// --- API Interaction (Real DPLA Data via DigitalOcean Function) ---
+
 async function fetchFullDplaDataset() {
     let fullDataset = loadFullDatasetFromCache();
 
@@ -141,13 +162,64 @@ async function fetchFullDplaDataset() {
     setLoading(true);
     setError(false);
 
+    // Simulate network delay
     await new Promise(resolve => setTimeout(resolve, 800));
 
     try {
-        console.log("Generating new demo dataset...");
-        fullDataset = generateDemoData(DEMO_RECORD_COUNT);
-        saveFullDatasetToCache(fullDataset);
-        return fullDataset;
+        console.log("Fetching full dataset from DPLA API via DigitalOcean proxy...");
+        // --- Construct the request to YOUR proxy function ---
+        // The proxy expects an 'endpoint' query param and forwards others.
+        const proxyUrl = new URL(API_PROXY_URL);
+        // Set the DPLA endpoint
+        proxyUrl.searchParams.set('endpoint', 'items');
+        // Set the search query
+        proxyUrl.searchParams.set('q', 'ancient egypt');
+        // Request a large page size to get more data initially.
+        // Note: DPLA API might have its own limits. Check DPLA docs.
+        // For initial load, we'll fetch a substantial page.
+        // Pagination for user interaction will be handled separately.
+        proxyUrl.searchParams.set('page_size', '100'); // Fetch 100 items
+        // Optionally, sort by score or date if desired
+        // proxyUrl.searchParams.set('sort_by', 'score'); // Or 'date' (descending by default for date)
+
+        console.log("Calling proxy URL:", proxyUrl.toString());
+
+        const response = await fetch(proxyUrl.toString());
+
+        if (!response.ok) {
+            // If the proxy returned an error (e.g., 400, 403, 502 from DPLA)
+            // Or if there was a network error reaching the proxy itself (response.ok is false)
+            const errorText = await response.text();
+            console.error(`API request failed with status ${response.status}:`, errorText);
+            throw new Error(`API request failed (${response.status}): ${errorText}`);
+        }
+
+        const data = await response.json();
+
+        // --- Process the DPLA API Response ---
+        // The DPLA API returns an object like { count: N, start: 0, limit: 100, docs: [...] }
+        // We primarily need the 'docs' array which contains the item records.
+        if (data && Array.isArray(data.docs)) {
+             // The proxy returns the raw DPLA response structure.
+             // appState.allRecords expects an array of item objects directly.
+             // So we assign data.docs.
+             fullDataset = data.docs;
+             console.log(`Successfully fetched ${fullDataset.length} records from DPLA.`);
+             saveFullDatasetToCache(fullDataset); // Cache the fetched data
+             return fullDataset;
+
+        } else if (data && typeof data === 'object' && data.hasOwnProperty('count')) {
+             // Likely a valid DPLA response object, but docs might be empty or malformed
+             console.warn("DPLA API response received, but 'docs' array is missing or invalid:", data);
+             // Treat as empty dataset
+             fullDataset = [];
+             saveFullDatasetToCache(fullDataset);
+             return fullDataset;
+        } else {
+            // Unexpected response structure
+            console.error("Unexpected API response structure:", data);
+            throw new Error("Received unexpected data format from API proxy.");
+        }
 
     } catch (error) {
         console.error("Error fetching full dataset:", error);
@@ -157,6 +229,8 @@ async function fetchFullDplaDataset() {
         setLoading(false);
     }
 }
+
+// --- View Rendering ---
 
 function renderListView(records) {
     const listElement = document.createElement('ul');
@@ -171,6 +245,7 @@ function renderListView(records) {
         const provider = record.provider?.name || 'Unknown Provider';
         const linkUrl = record.isShownAt || '#';
 
+        // Truncate description for list view
         const truncatedDescription = description.length > 200 ? description.substring(0, 200) + '...' : description;
 
         itemElement.innerHTML = `
@@ -197,14 +272,15 @@ function renderTileView(records) {
         const title = record.sourceResource?.title?.[0] || 'Untitled';
         const provider = record.provider?.name || 'Unknown Provider';
         const linkUrl = record.isShownAt || '#';
-        const imageUrl = record.object;
+        const imageUrl = record.object; // DPLA thumbnail URL
         const resourceType = record.sourceResource?.type?.[0]?.toLowerCase() || 'unknown';
 
         let imageHtml = '';
         if (imageUrl) {
             imageHtml = `<img src="${imageUrl}" alt="Thumbnail for ${title}">`;
         } else {
-            let iconName = 'file';
+            // Determine icon based on type
+            let iconName = 'file'; // Default
             if (resourceType.includes('image')) iconName = 'image';
             else if (resourceType.includes('text')) iconName = 'file-text';
             else if (resourceType.includes('physical')) iconName = 'gallery-vertical-end';
@@ -234,9 +310,10 @@ function renderTileView(records) {
     lucide.createIcons();
 }
 
+// --- Add Compact Image View Rendering Function ---
 function renderCompactImageView(records) {
     const listElement = document.createElement('ul');
-    listElement.className = 'compact-image-view';
+    listElement.className = 'compact-image-view'; // Use the new CSS class
 
     const headerRow = document.createElement('li');
     headerRow.className = 'compact-image-header';
@@ -258,14 +335,15 @@ function renderCompactImageView(records) {
         const description = record.sourceResource?.description?.[0] || 'No description available.';
         const institution = record.provider?.name || 'Unknown Institution';
         const linkUrl = record.isShownAt || '#';
-        const imageUrl = record.object;
+        const imageUrl = record.object; // DPLA thumbnail URL
         const resourceType = record.sourceResource?.type?.[0]?.toLowerCase() || 'unknown';
 
         let imageHtml = '';
         if (imageUrl) {
             imageHtml = `<img src="${imageUrl}" alt="Thumbnail for ${title}">`;
         } else {
-            let iconName = 'file';
+            // Determine icon based on type (same logic as tile view)
+            let iconName = 'file'; // Default
             if (resourceType.includes('image')) iconName = 'image';
             else if (resourceType.includes('text')) iconName = 'file-text';
             else if (resourceType.includes('physical')) iconName = 'gallery-vertical-end';
@@ -276,14 +354,8 @@ function renderCompactImageView(records) {
             imageHtml = `<i data-lucide="${iconName}" class="icon-placeholder"></i>`;
         }
 
-        const randomDaysAgo = Math.floor(Math.random() * 365 * 3);
-        const dateAdded = new Date();
-        dateAdded.setDate(dateAdded.getDate() - randomDaysAgo);
-        const formattedDate = dateAdded.toLocaleDateString('en-US', {
-            year: 'numeric',
-            month: 'short',
-            day: 'numeric'
-        });
+        // Truncate description for compact image view
+        const truncatedDescription = description.length > 150 ? description.substring(0, 150) + '...' : description;
 
         itemElement.innerHTML = `
             <div class="civ-col-image">
@@ -292,8 +364,8 @@ function renderCompactImageView(records) {
                 </div>
             </div>
             <div class="civ-col-title">${title}</div>
-            <div class="civ-col-description">${description}</div>
-            <div class="civ-col-date">${formattedDate}</div>
+            <div class="civ-col-description">${truncatedDescription}</div>
+            <div class="civ-col-date">${new Date().toLocaleDateString()}</div> <!-- Placeholder -->
             <div class="civ-col-institution">${institution}</div>
             <div class="civ-col-link">
                 <a href="${linkUrl}" target="_blank" aria-label="View Record on DPLA">
@@ -309,11 +381,8 @@ function renderCompactImageView(records) {
 
     lucide.createIcons();
 }
+// -------------------------------------------------
 
-function renderNoRecordsMessage() {
-    elements.contentArea.innerHTML = '<p class="no-records-message">No records found. Please adjust your search or filter terms.</p>';
-    hideElement(elements.paginationControls);
-}
 
 function updatePaginationControls(totalRecords) {
     const totalPages = Math.ceil(totalRecords / appState.itemsPerPage);
@@ -335,33 +404,32 @@ function renderCurrentView() {
     const end = start + appState.itemsPerPage;
     const recordsToShow = appState.filteredRecords.slice(start, end);
 
-    if (recordsToShow.length === 0) {
-        renderNoRecordsMessage();
-        updatePaginationControls(0);
-        return;
-    }
-
     if (appState.currentView === 'list') {
         renderListView(recordsToShow);
-    } else if (appState.currentView === 'tile') {
+    } else if (appState.currentView === 'tile') { // <-- Added 'tile' check
         renderTileView(recordsToShow);
-    } else if (appState.currentView === 'compact-image') {
+    } else if (appState.currentView === 'compact-image') { // <-- Added 'compact-image' check
         renderCompactImageView(recordsToShow);
     }
-    updatePaginationControls(appState.filteredRecords.length);
+    updatePaginationControls(appState.filteredRecords.length); // Total count for pagination
 }
 
+
+// --- Event Handlers ---
+
 function setupEventListeners() {
+    // --- Updated View Toggle Logic for Three Views ---
     function setView(viewName) {
         appState.currentView = viewName;
 
+        // Update button states: only one active at a time
         elements.listViewBtn.classList.remove('active');
         elements.compactImageViewBtn.classList.remove('active');
         elements.tileViewBtn.classList.remove('active');
 
         if (viewName === 'list') {
             elements.listViewBtn.classList.add('active');
-        } else if (viewName === 'compact-image') {
+        } else if (viewName === 'compact-image') { // <-- Added 'compact-image' check
             elements.compactImageViewBtn.classList.add('active');
         } else if (viewName === 'tile') {
             elements.tileViewBtn.classList.add('active');
@@ -371,30 +439,37 @@ function setupEventListeners() {
     }
 
     elements.listViewBtn.addEventListener('click', () => setView('list'));
-    elements.compactImageViewBtn.addEventListener('click', () => setView('compact-image'));
+    elements.compactImageViewBtn.addEventListener('click', () => setView('compact-image')); // <-- Added listener
     elements.tileViewBtn.addEventListener('click', () => setView('tile'));
+    // ----------------------------------------------------
 
+
+    // --- Search with Debouncing ---
     let searchTimeout;
     elements.searchInput.addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
         searchTimeout = setTimeout(() => {
             appState.searchTerm = e.target.value.toLowerCase();
-            appState.currentPage = 1;
-            applyFiltersAndRender();
+            appState.currentPage = 1; // Reset to first page on new search
+            filterAndRender(); // Use the new filter-aware function
         }, SEARCH_DEBOUNCE_MS);
     });
+    // ----------------------------
 
+
+    // --- Pagination ---
     elements.itemsPerPageSelect.addEventListener('change', (e) => {
         appState.itemsPerPage = parseInt(e.target.value, 10);
-        appState.currentPage = 1;
-        renderCurrentView();
+        appState.currentPage = 1; // Reset to first page
+        renderCurrentView(); // Re-render with new page size
+        // Note: In a full implementation fetching from API, this would trigger a new fetch.
     });
 
     elements.prevPageBtn.addEventListener('click', () => {
         if (appState.currentPage > 1) {
             appState.currentPage--;
             renderCurrentView();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
         }
     });
 
@@ -403,46 +478,17 @@ function setupEventListeners() {
         if (appState.currentPage < totalPages) {
             appState.currentPage++;
             renderCurrentView();
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // Scroll to top
         }
     });
+    // ------------------
 
-    function toggleDropdown(button, menu) {
-        const isExpanded = button.getAttribute('aria-expanded') === 'true';
-        if (isExpanded) {
-            menu.classList.remove('show');
-            button.setAttribute('aria-expanded', 'false');
-            button.classList.remove('active');
-        } else {
-            closeAllDropdowns();
-            menu.classList.add('show');
-            button.setAttribute('aria-expanded', 'true');
-            button.classList.add('active');
-        }
-    }
 
-    function closeAllDropdowns() {
-        const allDropdowns = document.querySelectorAll('.custom-dropdown');
-        allDropdowns.forEach(dropdown => {
-            const btn = dropdown.querySelector('.dropdown-button');
-            const mnu = dropdown.querySelector('.dropdown-menu');
-            if (btn && mnu) {
-                mnu.classList.remove('show');
-                btn.setAttribute('aria-expanded', 'false');
-                btn.classList.remove('active');
-            }
-        });
-    }
-
-    document.addEventListener('click', (e) => {
-        if (!e.target.closest('.custom-dropdown')) {
-            closeAllDropdowns();
-        }
-    });
-
+    // --- Faceted Filter Event Listeners ---
+    // Handle multi-select for Type and Institution
     if (elements.typeFilterButton && elements.typeFilterMenu) {
         elements.typeFilterButton.addEventListener('click', (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent document click listener from closing it immediately
             toggleDropdown(elements.typeFilterButton, elements.typeFilterMenu);
         });
     }
@@ -454,6 +500,7 @@ function setupEventListeners() {
         });
     }
 
+    // Handle single-select for Date
     if (elements.dateFilterButton && elements.dateFilterMenu) {
         elements.dateFilterButton.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -466,13 +513,15 @@ function setupEventListeners() {
             radio.addEventListener('change', (e) => {
                 if (e.target.checked) {
                     appState.selectedDateRange = e.target.value;
+                    // Update button text
                     const selectedLabel = e.target.parentElement.textContent.trim();
                     if (elements.dateFilterButton) {
                         elements.dateFilterButton.textContent = selectedLabel || 'All Dates';
                     }
                     appState.currentPage = 1;
-                    applyFiltersAndRender();
-                    updateUrlParams();
+                    filterAndRender(); // Use the new filter-aware function
+                    updateUrlParams(); // Update URL on filter change
+                    // Close the dropdown menu after selection
                     if (elements.dateFilterMenu) {
                         elements.dateFilterMenu.classList.remove('show');
                         elements.dateFilterButton?.setAttribute('aria-expanded', 'false');
@@ -490,14 +539,18 @@ function setupEventListeners() {
             appState.selectedDateRange = '';
             appState.currentPage = 1;
 
+            // Reset UI elements
+            // Uncheck all checkboxes in type filter
             if (elements.typeFilterMenu) {
                 const typeCheckboxes = elements.typeFilterMenu.querySelectorAll('input[type="checkbox"]');
                 typeCheckboxes.forEach(cb => cb.checked = false);
             }
+            // Uncheck all checkboxes in institution filter
             if (elements.institutionFilterMenu) {
                 const instCheckboxes = elements.institutionFilterMenu.querySelectorAll('input[type="checkbox"]');
                 instCheckboxes.forEach(cb => cb.checked = false);
             }
+            // Reset date filter radio buttons
             if (elements.dateFilterRadios.length > 0) {
                 elements.dateFilterRadios.forEach(radio => {
                     if (radio.value === '') {
@@ -511,135 +564,83 @@ function setupEventListeners() {
                 });
             }
 
-            applyFiltersAndRender();
-            updateUrlParams();
+            filterAndRender(); // Use the new filter-aware function
+            updateUrlParams(); // Update URL to remove filter params
         });
     }
+    // -------------------------------------
 }
 
-function populateCustomFilters() {
+// --- Filter Logic ---
+
+// Populate filter dropdowns with unique values from the dataset
+function populateFilters() {
     if (!appState.allRecords.length) return;
 
     const types = new Set();
     const institutions = new Set();
 
     appState.allRecords.forEach(record => {
+        // Extract types
         if (record.sourceResource?.type) {
             record.sourceResource.type.forEach(t => {
                 if (t) types.add(t.trim());
             });
         }
+        // Extract institutions (dataProvider.name)
         if (record.provider?.name) {
             institutions.add(record.provider.name.trim());
         }
     });
 
-    const sortedTypes = Array.from(types).sort();
-    const sortedInstitutions = Array.from(institutions).sort();
-
+    // Populate Type Filter
     if (elements.typeFilterMenu) {
-        elements.typeFilterMenu.innerHTML = '';
+        // Clear existing options except the default "All Types"
+        while (elements.typeFilterMenu.options.length > 1) {
+            elements.typeFilterMenu.remove(1);
+        }
+        const sortedTypes = Array.from(types).sort();
         sortedTypes.forEach(type => {
-            const li = document.createElement('li');
-            const label = document.createElement('label');
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = type;
-            if (appState.selectedTypes.includes(type)) {
-                checkbox.checked = true;
-            }
-
-            checkbox.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    if (!appState.selectedTypes.includes(e.target.value)) {
-                        appState.selectedTypes.push(e.target.value);
-                    }
-                } else {
-                    appState.selectedTypes = appState.selectedTypes.filter(t => t !== e.target.value);
-                }
-                appState.currentPage = 1;
-                applyFiltersAndRender();
-                updateUrlParams();
-            });
-
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(` ${type}`));
-            li.appendChild(label);
-            elements.typeFilterMenu.appendChild(li);
+            const option = document.createElement('option');
+            option.value = type;
+            option.textContent = type;
+            elements.typeFilterMenu.appendChild(option);
         });
-        updateHiddenSelect(elements.typeFilterSelect, sortedTypes, appState.selectedTypes);
+        // Ensure placeholder is disabled and not selected
+        if (elements.typeFilterMenu.options[0]) {
+             elements.typeFilterMenu.options[0].disabled = true;
+             elements.typeFilterMenu.options[0].selected = false;
+        }
     }
 
+    // Populate Institution Filter
     if (elements.institutionFilterMenu) {
-        elements.institutionFilterMenu.innerHTML = '';
+        // Clear existing options except the default "All Institutions"
+        while (elements.institutionFilterMenu.options.length > 1) {
+            elements.institutionFilterMenu.remove(1);
+        }
+        const sortedInstitutions = Array.from(institutions).sort();
         sortedInstitutions.forEach(inst => {
-            const li = document.createElement('li');
-            const label = document.createElement('label');
-            const checkbox = document.createElement('input');
-            checkbox.type = 'checkbox';
-            checkbox.value = inst;
-            if (appState.selectedInstitutions.includes(inst)) {
-                checkbox.checked = true;
-            }
-
-            checkbox.addEventListener('change', (e) => {
-                if (e.target.checked) {
-                    if (!appState.selectedInstitutions.includes(e.target.value)) {
-                        appState.selectedInstitutions.push(e.target.value);
-                    }
-                } else {
-                    appState.selectedInstitutions = appState.selectedInstitutions.filter(i => i !== e.target.value);
-                }
-                appState.currentPage = 1;
-                applyFiltersAndRender();
-                updateUrlParams();
-            });
-
-            label.appendChild(checkbox);
-            label.appendChild(document.createTextNode(` ${inst}`));
-            li.appendChild(label);
-            elements.institutionFilterMenu.appendChild(li);
+            const option = document.createElement('option');
+            option.value = inst;
+            option.textContent = inst;
+            elements.institutionFilterMenu.appendChild(option);
         });
-        updateHiddenSelect(elements.institutionFilterSelect, sortedInstitutions, appState.selectedInstitutions);
-    }
-
-    if (appState.selectedDateRange && elements.dateFilterRadios.length > 0) {
-        elements.dateFilterRadios.forEach(radio => {
-            if (radio.value === appState.selectedDateRange) {
-                radio.checked = true;
-                const selectedLabel = radio.parentElement.textContent.trim();
-                if (elements.dateFilterButton) {
-                    elements.dateFilterButton.textContent = selectedLabel;
-                }
-            }
-        });
-    }
-    if (elements.dateFilterSelect) {
-        const selectedOption = Array.from(elements.dateFilterSelect.options).find(opt => opt.value === appState.selectedDateRange);
-        if (selectedOption && elements.dateFilterButton) {
-            elements.dateFilterButton.textContent = selectedOption.textContent;
+         // Ensure placeholder is disabled and not selected
+        if (elements.institutionFilterMenu.options[0]) {
+             elements.institutionFilterMenu.options[0].disabled = true;
+             elements.institutionFilterMenu.options[0].selected = false;
         }
-        elements.dateFilterSelect.value = appState.selectedDateRange;
     }
+
+    // Date Filter options are predefined in HTML, no need to populate here.
 }
 
-function updateHiddenSelect(selectElement, allOptions, selectedValues) {
-    if (!selectElement) return;
-    selectElement.innerHTML = '';
-    allOptions.forEach(opt => {
-        const option = document.createElement('option');
-        option.value = opt;
-        option.textContent = opt;
-        if (selectedValues.includes(opt)) {
-            option.selected = true;
-        }
-        selectElement.appendChild(option);
-    });
-}
-
+// Apply search term and filters to get filteredRecords
 function filterRecords() {
     let results = [...appState.allRecords];
 
+    // 1. Apply search term filter
     if (appState.searchTerm) {
         results = results.filter(record =>
             (record.sourceResource?.title?.[0]?.toLowerCase().includes(appState.searchTerm)) ||
@@ -647,33 +648,41 @@ function filterRecords() {
         );
     }
 
+    // 2. Apply Type filter (AND logic between selected types)
     if (appState.selectedTypes.length > 0) {
         results = results.filter(record => {
             const recordTypes = record.sourceResource?.type || [];
+            // Check if the record has ANY of the selected types
             return appState.selectedTypes.some(selectedType =>
                 recordTypes.includes(selectedType)
             );
         });
     }
 
+    // 3. Apply Institution filter (AND logic between selected institutions)
     if (appState.selectedInstitutions.length > 0) {
         results = results.filter(record =>
             appState.selectedInstitutions.includes(record.provider?.name)
         );
     }
 
+    // 4. Apply Date Range filter (single select)
     if (appState.selectedDateRange && DATE_RANGES[appState.selectedDateRange]) {
         const range = DATE_RANGES[appState.selectedDateRange];
         results = results.filter(record => {
+            // Try to get a usable date string from sourceResource.date
             const dateStr = record.sourceResource?.date?.[0];
-            if (!dateStr) return false;
+            if (!dateStr) return false; // If no date, it doesn't match any range filter
 
+            // Attempt to extract a year from the date string
+            // This is a simple extraction, real API data might need more robust parsing
             const yearMatch = dateStr.match(/\d{4}/);
-            if (!yearMatch) return false;
+            if (!yearMatch) return false; // If no 4-digit year found, can't filter
 
             const year = parseInt(yearMatch[0], 10);
             if (isNaN(year)) return false;
 
+            // Check if year falls within the selected range
             const isAfterStart = range.start ? year >= range.start : true;
             const isBeforeEnd = range.end ? year <= range.end : true;
             return isAfterStart && isBeforeEnd;
@@ -683,15 +692,20 @@ function filterRecords() {
     return results;
 }
 
-function applyFiltersAndRender() {
+// Central function to apply filters and re-render
+function filterAndRender() {
     appState.filteredRecords = filterRecords();
     renderCurrentView();
 }
+// ------------------
 
+
+// --- URL Parameter Handling ---
 function updateUrlParams() {
     const url = new URL(window.location);
     const params = url.searchParams;
 
+    // Update or remove params based on current state
     if (appState.selectedTypes.length > 0) {
         params.set('types', appState.selectedTypes.join(','));
     } else {
@@ -710,39 +724,66 @@ function updateUrlParams() {
         params.delete('date');
     }
 
+    // Note: Updating the URL without page reload
     window.history.replaceState({}, '', url);
 }
+
+// TODO: Implement reading initial filter state from URL on page load
+// This requires integrating with the data loading sequence in initApp
+// function readUrlParams() { ... }
+// ----------------------------
+
+
+function filterAndRender() {
+    // This function is now largely superseded by applyFiltersAndRender
+    // but might still be called by legacy parts of the code or indirectly.
+    // We can redirect it to the new function.
+    applyFiltersAndRender();
+}
+
+// --- Initialization ---
 
 async function initApp() {
     lucide.createIcons();
 
     setupEventListeners();
 
+    // --- Update Initial Active Button State ---
     elements.listViewBtn.classList.remove('active');
-    elements.compactImageViewBtn.classList.remove('active');
-    elements.tileViewBtn.classList.add('active');
+    elements.compactImageViewBtn.classList.add('active'); // Set Compact Image View as default active
+    elements.tileViewBtn.classList.remove('active');
+    // ---------------------------------------
 
     const fullDataset = await fetchFullDplaDataset();
 
     if (fullDataset && Array.isArray(fullDataset)) {
         appState.allRecords = fullDataset;
-        populateCustomFilters();
-        appState.filteredRecords = [...appState.allRecords];
-        renderCurrentView();
+        appState.filteredRecords = [...appState.allRecords]; // Initially, no filter
+        // --- Populate Filters after data is loaded ---
+        populateFilters();
+        // --------------------------------------------
+        renderCurrentView(); // This will render the first page of the 'compact-image' view
         showElement(elements.contentArea);
-        console.log("Application initialized successfully with demo data.");
+        console.log("Application initialized successfully with real DPLA data.");
     } else if (!appState.hasError && !appState.isLoading) {
+         // If fetch failed but no error was set, and we are not still loading, it's unexpected
          console.warn("Fetch did not return data and no error was set. This is unusual.");
+         // Fallback to local generation if cache and fetch both failed unexpectedly
          console.log("Falling back to local demo data generation.");
          appState.allRecords = generateDemoData(DEMO_RECORD_COUNT);
-         populateCustomFilters();
          appState.filteredRecords = [...appState.allRecords];
+         // --- Populate Filters after fallback data is generated ---
+         populateFilters();
+         // --------------------------------------------------------
          renderCurrentView();
          showElement(elements.contentArea);
          saveFullDatasetToCache(appState.allRecords);
     }
+    // If there was an error, setError(true) would have been called and UI updated
+    // If still loading, the load success will trigger the render.
 }
 
+// --- Demo Data Generator (MVP Placeholder) ---
 function generateDemoData(count) {
     const types = ['image', 'text', 'physical object', 'moving image', 'sound', 'dataset'];
     const providers = [
@@ -803,30 +844,27 @@ function generateDemoData(count) {
         const title = titles[Math.floor(Math.random() * titles.length)];
         const description = descriptions[Math.floor(Math.random() * descriptions.length)];
 
-        const hasImage = Math.random() > 0.2;
-        const imageUrl = hasImage ? `https://picsum.photos/seed/egypt${i}/150/100` : null;
-
-        const year = Math.floor(Math.random() * (2020 - 1000 + 1)) + 1000;
-        const month = String(Math.floor(Math.random() * 12) + 1).padStart(2, '0');
-        const day = String(Math.floor(Math.random() * 28) + 1).padStart(2, '0');
-        const dateString = `${year}-${month}-${day}`;
+        // Simulate having or not having an image
+        const hasImage = Math.random() > 0.2; // 80% chance of having an image
+        const imageUrl = hasImage ? `https://picsum.photos/seed/egypt${i}/300/200` : null; // Using Picsum for placeholder images
 
         data.push({
             id: `demo-record-${i}`,
             sourceResource: {
                 title: [title],
                 description: [description],
-                type: [type],
-                date: [dateString]
+                type: [type]
             },
             provider: {
                 name: provider
             },
-            isShownAt: `https://example.com/record/${i}`,
-            object: imageUrl
+            isShownAt: `https://example.com/record/${i}`, // Placeholder link
+            object: imageUrl // DPLA thumbnail URL field
         });
     }
     return data;
 }
 
+
+// --- Start the App ---
 document.addEventListener('DOMContentLoaded', initApp);
