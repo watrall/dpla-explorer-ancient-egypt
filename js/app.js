@@ -169,22 +169,11 @@ async function fetchFullDplaDataset() {
         console.log("Fetching full dataset from DPLA API via DigitalOcean proxy...");
         // --- Construct the request to YOUR proxy function ---
         // The proxy expects an 'endpoint' query param and forwards others.
-        const proxyUrl = new URL(API_PROXY_URL);
-        // Set the DPLA endpoint
-        proxyUrl.searchParams.set('endpoint', 'items');
-        // Set the search query
-        proxyUrl.searchParams.set('q', 'ancient egypt');
-        // Request a large page size to get more data initially.
-        // Note: DPLA API might have its own limits. Check DPLA docs.
-        // For initial load, we'll fetch a substantial page.
-        // Pagination for user interaction will be handled separately.
-        proxyUrl.searchParams.set('page_size', '100'); // Fetch 100 items
-        // Optionally, sort by score or date if desired
-        // proxyUrl.searchParams.set('sort_by', 'score'); // Or 'date' (descending by default for date)
+        let proxyUrl = `${API_PROXY_URL}?endpoint=items&q=ancient%20egypt&page_size=100`;
 
-        console.log("Calling proxy URL:", proxyUrl.toString());
+        console.log("Calling proxy URL:", proxyUrl);
 
-        const response = await fetch(proxyUrl.toString());
+        const response = await fetch(proxyUrl);
 
         if (!response.ok) {
             // If the proxy returned an error (e.g., 400, 403, 502 from DPLA)
