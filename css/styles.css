@@ -335,21 +335,72 @@ main {
   display: none;
 }
 
-.spinner {
-  border: 4px solid rgba(0, 0, 0, 0.1);
-  border-left-color: var(--primary-color);
-  border-radius: 50%;
-  width: 40px;
-  height: 40px;
-  animation: spin 1s linear infinite;
+/* --- Updated Spinner Styles --- */
+.loader {
+  animation: rotate 1s infinite;
+  height: 50px;
+  width: 50px;
   margin: 0 auto 15px;
 }
 
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
+.loader:before,
+.loader:after {
+  border-radius: 50%;
+  content: "";
+  display: block;
+  height: 20px;
+  width: 20px;
+}
+
+.loader:before {
+  animation: ball1 1s infinite;
+  background-color: #ecf0f1; /* Using secondary color */
+  box-shadow: 30px 0 0 var(--primary-color); /* Using primary color */
+  margin-bottom: 10px;
+}
+
+.loader:after {
+  animation: ball2 1s infinite;
+  background-color: var(--primary-color); /* Using primary color */
+  box-shadow: 30px 0 0 #ecf0f1; /* Using secondary color */
+}
+
+@keyframes rotate {
+  0% { transform: rotate(0deg) scale(0.8) }
+  50% { transform: rotate(360deg) scale(1.2) }
+  100% { transform: rotate(720deg) scale(0.8) }
+}
+
+@keyframes ball1 {
+  0% {
+    box-shadow: 30px 0 0 var(--primary-color);
+  }
+  50% {
+    box-shadow: 0 0 0 var(--primary-color);
+    margin-bottom: 0;
+    transform: translate(15px, 15px);
+  }
+  100% {
+    box-shadow: 30px 0 0 var(--primary-color);
+    margin-bottom: 10px;
   }
 }
+
+@keyframes ball2 {
+  0% {
+    box-shadow: 30px 0 0 #ecf0f1;
+  }
+  50% {
+    box-shadow: 0 0 0 #ecf0f1;
+    margin-top: -20px;
+    transform: translate(15px, 15px);
+  }
+  100% {
+    box-shadow: 30px 0 0 #ecf0f1;
+    margin-top: 0;
+  }
+}
+/* ---------------------------- */
 
 .error {
   color: #e74c3c;
@@ -793,14 +844,17 @@ footer p a:hover {
     height: 130px;
   }
 
-  .pagination {
-    flex-direction: column;
-    align-items: stretch;
-    text-align: center;
+  .tile-content {
+    padding: 8px;
   }
 
-  .page-navigation {
-    justify-content: center;
+  .tile-content h3 {
+    font-size: 0.9em;
+  }
+
+  .tile-content p,
+  .tile-content .view-link {
+    font-size: 0.75em;
   }
 }
 
