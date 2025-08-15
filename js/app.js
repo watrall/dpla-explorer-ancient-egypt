@@ -136,11 +136,11 @@ function loadFullDatasetFromCache() {
             return null;
         }
         const cachedItem = JSON.parse(cachedItemString);
-        if (isCacheValid(cachedItem)) {
-            console.log("Loaded full dataset from cache.");
+        if (isCacheValid(cachedItem) && Array.isArray(cachedItem.data)) {
+            console.log("Loaded valid full dataset from cache.");
             return cachedItem.data;
         } else {
-            console.log("Cached dataset expired, removing.");
+            console.warn("Cached data is invalid or corrupted. Removing.");
             localStorage.removeItem(FULL_DATASET_CACHE_KEY);
             return null;
         }
@@ -169,11 +169,22 @@ async function fetchFullDplaDataset() {
         console.log("Fetching full dataset from DPLA API via DigitalOcean proxy...");
         // --- Construct the request to YOUR proxy function ---
         // The proxy expects an 'endpoint' query param and forwards others.
-        let proxyUrl = `${API_PROXY_URL}?endpoint=items&q=ancient%20egypt&page_size=100`;
+        const proxyUrl = new URL(API_PROXY_URL);
+        // Set the DPLA endpoint
+        proxyUrl.searchParams.set('endpoint', 'items');
+        // Set the search query
+        proxyUrl.searchParams.set('q', 'ancient egypt');
+        // Request a large page size to get more data initially.
+        // Note: DPLA API might have its own limits. Check DPLA docs.
+        // For initial load, we'll fetch a substantial page.
+        // Pagination for user interaction will be handled separately.
+        proxyUrl.searchParams.set('page_size', '100'); // Fetch 100 items
+        // Optionally, sort by score or date if desired
+        // proxyUrl.searchParams.set('sort_by', 'score'); // Or 'date' (descending by default for date)
 
-        console.log("Calling proxy URL:", proxyUrl);
+        console.log("Calling proxy URL:", proxyUrl.toString());
 
-        const response = await fetch(proxyUrl);
+        const response = await fetch(proxyUrl.toString());
 
         if (!response.ok) {
             // If the proxy returned an error (e.g., 400, 403, 502 from DPLA)
