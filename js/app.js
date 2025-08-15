@@ -1,13 +1,9 @@
-// js/app.js
-
-// --- Configuration ---
 const API_PROXY_URL = 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-db103013-6f04-45ed-9d08-869494cf2959/default/dpla-api-proxy';
 const CACHE_DURATION_HOURS = 24;
 const DEFAULT_ITEMS_PER_PAGE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
 const DEMO_RECORD_COUNT = 200;
 
-// --- Date Range Definitions ---
 const DATE_RANGES = {
     "before-1800": { start: null, end: 1799 },
     "1800-1900": { start: 1800, end: 1900 },
@@ -16,7 +12,6 @@ const DATE_RANGES = {
     "after-2000": { start: 2001, end: null }
 };
 
-// --- State Management ---
 let appState = {
     allRecords: [],
     filteredRecords: [],
@@ -31,7 +26,6 @@ let appState = {
     hasError: false
 };
 
-// --- DOM Elements ---
 const elements = {
     listViewBtn: document.getElementById('listViewBtn'),
     compactImageViewBtn: document.getElementById('compactImageViewBtn'),
@@ -56,7 +50,6 @@ const elements = {
     clearFiltersBtn: document.getElementById('clearFiltersBtn')
 };
 
-// --- Utility Functions ---
 function showElement(el) {
     el.classList.remove('hidden');
 }
@@ -89,7 +82,6 @@ function setError(hasError) {
     }
 }
 
-// --- Cache Management ---
 const FULL_DATASET_CACHE_KEY = 'dpla_egypt_full_dataset_demo_v4';
 
 function isCacheValid(cachedItem) {
@@ -106,7 +98,6 @@ function saveFullDatasetToCache(data) {
             data
         };
         localStorage.setItem(FULL_DATASET_CACHE_KEY, JSON.stringify(cacheItem));
-        console.log("Full dataset saved to cache.");
     } catch (e) {
         console.warn("Could not save full dataset to localStorage", e);
     }
@@ -116,15 +107,12 @@ function loadFullDatasetFromCache() {
     try {
         const cachedItemString = localStorage.getItem(FULL_DATASET_CACHE_KEY);
         if (!cachedItemString) {
-            console.log("No cached dataset found.");
             return null;
         }
         const cachedItem = JSON.parse(cachedItemString);
         if (isCacheValid(cachedItem) && Array.isArray(cachedItem.data)) {
-            console.log("Loaded valid full dataset from cache.");
             return cachedItem.data;
         } else {
-            console.warn("Cached data is invalid or corrupted. Removing.");
             localStorage.removeItem(FULL_DATASET_CACHE_KEY);
             return null;
         }
@@ -134,9 +122,7 @@ function loadFullDatasetFromCache() {
     }
 }
 
-// --- API Interaction ---
 async function fetchAllDplaRecords() {
-    // Clear old cache keys
     localStorage.removeItem('dpla_egypt_full_dataset_demo');
     localStorage.removeItem('dpla_egypt_full_dataset_demo_v2');
     localStorage.removeItem('dpla_egypt_full_dataset_demo_v3');
@@ -144,7 +130,6 @@ async function fetchAllDplaRecords() {
     let allRecords = loadFullDatasetFromCache();
     
     if (allRecords) {
-        console.log("Using cached data with", allRecords.length, "records");
         return allRecords;
     }
     
@@ -152,41 +137,29 @@ async function fetchAllDplaRecords() {
     setError(false);
     
     try {
-        console.log("Fetching records from DPLA API via DigitalOcean proxy...");
-        
-        // Simple search query for ancient Egypt content
         const searchQuery = 'ancient egypt OR egyptian';
         
-        // First, get the total count
         const countUrl = new URL(API_PROXY_URL);
         countUrl.searchParams.set('endpoint', 'items');
         countUrl.searchParams.set('q', searchQuery);
         countUrl.searchParams.set('page_size', '0');
         
-        console.log("Fetching record count with URL:", countUrl.toString());
-        
         const countResponse = await fetch(countUrl.toString());
         if (!countResponse.ok) {
             const errorText = await countResponse.text();
-            console.error("API Error Response:", errorText);
             throw new Error(`Failed to get record count: ${countResponse.status} - ${errorText}`);
         }
         
         const countData = await countResponse.json();
         const totalRecords = countData.count || 0;
-        console.log(`Total records to fetch: ${totalRecords}`);
         
         if (totalRecords === 0) {
-            console.log("No records found with the search query");
             return [];
         }
         
-        // Fetch first 1000 records (reasonable limit)
         const batchSize = 100;
-        const totalPages = Math.min(Math.ceil(totalRecords / batchSize), 10); // Limit to 10 pages
+        const totalPages = Math.min(Math.ceil(totalRecords / batchSize), 10);
         let allDocs = [];
-        
-        console.log(`Fetching ${totalPages} pages of data...`);
         
         for (let page = 1; page <= totalPages; page++) {
             const proxyUrl = new URL(API_PROXY_URL);
@@ -195,28 +168,20 @@ async function fetchAllDplaRecords() {
             proxyUrl.searchParams.set('page_size', batchSize.toString());
             proxyUrl.searchParams.set('page', page.toString());
             
-            console.log(`Fetching page ${page} of ${totalPages}...`);
-            
             const response = await fetch(proxyUrl.toString());
             if (!response.ok) {
-                console.error(`Failed to fetch page ${page}: ${response.status}`);
                 continue;
             }
             
             const data = await response.json();
             if (data && Array.isArray(data.docs)) {
                 allDocs = allDocs.concat(data.docs);
-                console.log(`Fetched ${data.docs.length} records from page ${page}`);
-            } else {
-                console.warn(`No docs found in page ${page} response`);
             }
             
-            // Small delay to avoid overwhelming the API
             await new Promise(resolve => setTimeout(resolve, 50));
         }
         
         allRecords = allDocs;
-        console.log(`Successfully fetched ${allRecords.length} total records from DPLA.`);
         saveFullDatasetToCache(allRecords);
         return allRecords;
         
@@ -229,7 +194,6 @@ async function fetchAllDplaRecords() {
     }
 }
 
-// --- View Rendering ---
 function renderListView(records) {
     const listElement = document.createElement('ul');
     listElement.className = 'list-view';
@@ -303,7 +267,6 @@ function renderTileView(records) {
     elements.contentArea.innerHTML = '';
     elements.contentArea.appendChild(gridElement);
 
-    // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -375,7 +338,6 @@ function renderCompactImageView(records) {
     elements.contentArea.innerHTML = '';
     elements.contentArea.appendChild(listElement);
 
-    // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -411,11 +373,9 @@ function renderCurrentView() {
     updatePaginationControls(appState.filteredRecords.length);
 }
 
-// --- Dropdown Toggle Function ---
 function toggleDropdown(button, menu) {
     const isExpanded = button.getAttribute('aria-expanded') === 'true';
     
-    // Close all dropdowns first
     document.querySelectorAll('.custom-dropdown .dropdown-menu').forEach(dropdown => {
         dropdown.classList.remove('show');
         const dropdownButton = dropdown.previousElementSibling;
@@ -425,7 +385,6 @@ function toggleDropdown(button, menu) {
         }
     });
     
-    // Toggle the clicked dropdown
     if (!isExpanded) {
         menu.classList.add('show');
         button.setAttribute('aria-expanded', 'true');
@@ -437,7 +396,6 @@ function toggleDropdown(button, menu) {
     }
 }
 
-// Close dropdowns when clicking outside
 document.addEventListener('click', (e) => {
     if (!e.target.closest('.custom-dropdown')) {
         document.querySelectorAll('.custom-dropdown .dropdown-menu').forEach(menu => {
@@ -451,7 +409,6 @@ document.addEventListener('click', (e) => {
     }
 });
 
-// --- Event Handlers ---
 function setupEventListeners() {
     function setView(viewName) {
         appState.currentView = viewName;
@@ -475,7 +432,6 @@ function setupEventListeners() {
     elements.compactImageViewBtn.addEventListener('click', () => setView('compact-image'));
     elements.tileViewBtn.addEventListener('click', () => setView('tile'));
 
-    // Search with Debouncing
     let searchTimeout;
     elements.searchInput.addEventListener('input', (e) => {
         clearTimeout(searchTimeout);
@@ -486,7 +442,6 @@ function setupEventListeners() {
         }, SEARCH_DEBOUNCE_MS);
     });
 
-    // Pagination
     elements.itemsPerPageSelect.addEventListener('change', (e) => {
         appState.itemsPerPage = parseInt(e.target.value, 10);
         appState.currentPage = 1;
@@ -510,7 +465,6 @@ function setupEventListeners() {
         }
     });
 
-    // Faceted Filter Event Listeners
     if (elements.typeFilterButton && elements.typeFilterMenu) {
         elements.typeFilterButton.addEventListener('click', (e) => {
             e.stopPropagation();
@@ -593,7 +547,6 @@ function setupEventListeners() {
     }
 }
 
-// --- Filter Logic ---
 function populateFilters() {
     if (!appState.allRecords || !Array.isArray(appState.allRecords) || appState.allRecords.length === 0) return;
 
@@ -611,7 +564,6 @@ function populateFilters() {
         }
     });
 
-    // Populate Type Filter
     if (elements.typeFilterMenu) {
         elements.typeFilterMenu.innerHTML = '';
         const sortedTypes = Array.from(types).sort();
@@ -639,7 +591,6 @@ function populateFilters() {
         });
     }
 
-    // Populate Institution Filter
     if (elements.institutionFilterMenu) {
         elements.institutionFilterMenu.innerHTML = '';
         const sortedInstitutions = Array.from(institutions).sort();
@@ -671,7 +622,6 @@ function populateFilters() {
 function filterRecords() {
     let results = [...appState.allRecords];
 
-    // Apply search term filter
     if (appState.searchTerm) {
         results = results.filter(record =>
             (record.sourceResource?.title?.[0]?.toLowerCase().includes(appState.searchTerm)) ||
@@ -681,7 +631,6 @@ function filterRecords() {
         );
     }
 
-    // Apply Type filter
     if (appState.selectedTypes.length > 0) {
         results = results.filter(record => {
             const recordTypes = record.sourceResource?.type || [];
@@ -691,14 +640,12 @@ function filterRecords() {
         });
     }
 
-    // Apply Institution filter
     if (appState.selectedInstitutions.length > 0) {
         results = results.filter(record =>
             appState.selectedInstitutions.includes(record.provider?.name)
         );
     }
 
-    // Apply Date Range filter
     if (appState.selectedDateRange && DATE_RANGES[appState.selectedDateRange]) {
         const range = DATE_RANGES[appState.selectedDateRange];
         results = results.filter(record => {
@@ -725,16 +672,13 @@ function filterAndRender() {
     renderCurrentView();
 }
 
-// --- Initialization ---
 async function initApp() {
-    // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
 
     setupEventListeners();
 
-    // Set initial active button
     elements.listViewBtn.classList.remove('active');
     elements.compactImageViewBtn.classList.remove('active');
     elements.tileViewBtn.classList.add('active');
@@ -747,9 +691,7 @@ async function initApp() {
         populateFilters();
         renderCurrentView();
         showElement(elements.contentArea);
-        console.log("Application initialized successfully with", fullDataset.length, "records.");
     } else if (!appState.hasError && !appState.isLoading) {
-        console.warn("No data fetched and no error set. Falling back to demo data.");
         appState.allRecords = generateDemoData(DEMO_RECORD_COUNT);
         appState.filteredRecords = [...appState.allRecords];
         populateFilters();
@@ -759,7 +701,6 @@ async function initApp() {
     }
 }
 
-// --- Demo Data Generator ---
 function generateDemoData(count) {
     const types = ['image', 'text', 'physical object', 'moving image', 'sound', 'dataset'];
     const providers = [
@@ -817,7 +758,6 @@ function generateDemoData(count) {
     return data;
 }
 
-// --- Start the App ---
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {

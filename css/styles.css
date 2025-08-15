@@ -1,5 +1,3 @@
-/* css/styles.css */
-
 :root {
   --primary-color: #03738C;
   --secondary-color: #ecf0f1;
@@ -283,26 +281,17 @@ main {
   flex-shrink: 0;
 }
 
-/* --- Reduced padding for view buttons to match height ---
-   All other elements in the toolbar (search input, dropdown buttons, clear button)
-   have a padding-top/bottom of 7px. Let's make the view buttons match that.
-   Original padding: 7px 10px.
-   15% reduction: ~6px 9px (rounded to 6px 9px for practicality)
-*/
 .toolbar .view-btn {
   background-color: #fff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  /* --- Updated Padding --- */
-  padding: 6px 9px; /* ~15% smaller */
-  /* --------------------- */
+  padding: 6px 9px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, border-color 0.2s ease;
   flex-shrink: 0;
-  /* Ensure consistent line-height */
   line-height: 1;
 }
 
@@ -321,8 +310,6 @@ main {
   width: 1.1em;
   height: 1.1em;
 }
-/* ------------------------------------------------ */
-
 
 .loading,
 .error {
@@ -335,7 +322,6 @@ main {
   display: none;
 }
 
-/* --- Updated Spinner Styles --- */
 .loading .loader {
   animation: rotate 1s infinite;
   height: 50px;
@@ -354,15 +340,15 @@ main {
 
 .loading .loader:before {
   animation: ball1 1s infinite;
-  background-color: #ecf0f1; /* Using secondary color */
-  box-shadow: 30px 0 0 var(--primary-color); /* Using primary color */
+  background-color: #ecf0f1;
+  box-shadow: 30px 0 0 var(--primary-color);
   margin-bottom: 10px;
 }
 
 .loading .loader:after {
   animation: ball2 1s infinite;
-  background-color: var(--primary-color); /* Using primary color */
-  box-shadow: 30px 0 0 #ecf0f1; /* Using secondary color */
+  background-color: var(--primary-color);
+  box-shadow: 30px 0 0 #ecf0f1;
 }
 
 @keyframes rotate {
@@ -400,7 +386,6 @@ main {
     margin-top: 0;
   }
 }
-/* ---------------------------- */
 
 .error {
   color: #e74c3c;
@@ -618,6 +603,7 @@ main {
   font-size: 0.9em;
   color: var(--primary-color);
 }
+
 .list-item .view-link:hover {
   text-decoration: underline;
 }
@@ -705,6 +691,7 @@ main {
   margin-top: auto;
   align-self: flex-start;
 }
+
 .tile-content .view-link:hover {
   text-decoration: underline;
 }
@@ -773,6 +760,7 @@ footer p a {
   color: var(--primary-color);
   text-decoration: none;
 }
+
 footer p a:hover {
   text-decoration: underline;
 }
