@@ -317,7 +317,8 @@ function renderListView(records) {
         const title = record.sourceResource?.title?.[0] || 'Untitled';
         const description = record.sourceResource?.description?.[0] || 'No description available.';
         const provider = record.provider?.name || 'Unknown Provider';
-        const linkUrl = record.isShownAt || '#';
+        // Use DPLA record URL instead of institution URL
+        const linkUrl = record.id ? `https://dp.la/item/${record.id}` : '#';
 
         // Truncate description for list view
         const truncatedDescription = description.length > 200 ? description.substring(0, 200) + '...' : description;
@@ -345,7 +346,8 @@ function renderTileView(records) {
 
         const title = record.sourceResource?.title?.[0] || 'Untitled';
         const provider = record.provider?.name || 'Unknown Provider';
-        const linkUrl = record.isShownAt || '#';
+        // Use DPLA record URL instead of institution URL
+        const linkUrl = record.id ? `https://dp.la/item/${record.id}` : '#';
         const imageUrl = record.object; // DPLA thumbnail URL
         const resourceType = record.sourceResource?.type?.[0]?.toLowerCase() || 'unknown';
 
@@ -408,7 +410,8 @@ function renderCompactImageView(records) {
         const title = record.sourceResource?.title?.[0] || 'Untitled';
         const description = record.sourceResource?.description?.[0] || 'No description available.';
         const institution = record.provider?.name || 'Unknown Institution';
-        const linkUrl = record.isShownAt || '#';
+        // Use DPLA record URL instead of institution URL
+        const linkUrl = record.id ? `https://dp.la/item/${record.id}` : '#';
         const imageUrl = record.object; // DPLA thumbnail URL
         const resourceType = record.sourceResource?.type?.[0]?.toLowerCase() || 'unknown';
 
