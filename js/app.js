@@ -2,7 +2,7 @@
 
 // --- Configuration ---
 // --- UPDATE THIS TO YOUR DIGITALOCEAN FUNCTION INVOKE URL ---
-const API_PROXY_URL = 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-db103013-6f04-45ed-9d08-869494cf2959/default/dpla-api-proxy';
+const API_PROXY_URL = 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-db103013-6f04-45ed-9d08-869494cf2959/default/dpla-api-proxy  ';
 // -------------------------------------------------------------------------
 
 const CACHE_DURATION_HOURS = 24;
@@ -575,7 +575,8 @@ function setupEventListeners() {
 
 // Populate filter dropdowns with unique values from the dataset
 function populateFilters() {
-    if (!appState.allRecords.length) return;
+    // FIX: Check if allRecords exists and is an array before checking length
+    if (!appState.allRecords || !Array.isArray(appState.allRecords) || appState.allRecords.length === 0) return;
 
     const types = new Set();
     const institutions = new Set();
@@ -595,42 +596,58 @@ function populateFilters() {
 
     // Populate Type Filter
     if (elements.typeFilterMenu) {
-        // Clear existing options except the default "All Types"
-        while (elements.typeFilterMenu.options.length > 1) {
-            elements.typeFilterMenu.remove(1);
-        }
+        // Clear existing options
+        elements.typeFilterMenu.innerHTML = '';
         const sortedTypes = Array.from(types).sort();
         sortedTypes.forEach(type => {
-            const option = document.createElement('option');
-            option.value = type;
-            option.textContent = type;
-            elements.typeFilterMenu.appendChild(option);
+            const li = document.createElement('li');
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = type;
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    appState.selectedTypes.push(type);
+                } else {
+                    appState.selectedTypes = appState.selectedTypes.filter(t => t !== type);
+                }
+                appState.currentPage = 1;
+                filterAndRender();
+                updateUrlParams();
+            });
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(type));
+            li.appendChild(label);
+            elements.typeFilterMenu.appendChild(li);
         });
-        // Ensure placeholder is disabled and not selected
-        if (elements.typeFilterMenu.options[0]) {
-             elements.typeFilterMenu.options[0].disabled = true;
-             elements.typeFilterMenu.options[0].selected = false;
-        }
     }
 
     // Populate Institution Filter
     if (elements.institutionFilterMenu) {
-        // Clear existing options except the default "All Institutions"
-        while (elements.institutionFilterMenu.options.length > 1) {
-            elements.institutionFilterMenu.remove(1);
-        }
+        // Clear existing options
+        elements.institutionFilterMenu.innerHTML = '';
         const sortedInstitutions = Array.from(institutions).sort();
         sortedInstitutions.forEach(inst => {
-            const option = document.createElement('option');
-            option.value = inst;
-            option.textContent = inst;
-            elements.institutionFilterMenu.appendChild(option);
+            const li = document.createElement('li');
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = inst;
+            checkbox.addEventListener('change', (e) => {
+                if (e.target.checked) {
+                    appState.selectedInstitutions.push(inst);
+                } else {
+                    appState.selectedInstitutions = appState.selectedInstitutions.filter(i => i !== inst);
+                }
+                appState.currentPage = 1;
+                filterAndRender();
+                updateUrlParams();
+            });
+            label.appendChild(checkbox);
+            label.appendChild(document.createTextNode(inst));
+            li.appendChild(label);
+            elements.institutionFilterMenu.appendChild(li);
         });
-         // Ensure placeholder is disabled and not selected
-        if (elements.institutionFilterMenu.options[0]) {
-             elements.institutionFilterMenu.options[0].disabled = true;
-             elements.institutionFilterMenu.options[0].selected = false;
-        }
     }
 
     // Date Filter options are predefined in HTML, no need to populate here.
@@ -733,13 +750,6 @@ function updateUrlParams() {
 // function readUrlParams() { ... }
 // ----------------------------
 
-
-function filterAndRender() {
-    // This function is now largely superseded by applyFiltersAndRender
-    // but might still be called by legacy parts of the code or indirectly.
-    // We can redirect it to the new function.
-    applyFiltersAndRender();
-}
 
 // --- Initialization ---
 
@@ -846,7 +856,7 @@ function generateDemoData(count) {
 
         // Simulate having or not having an image
         const hasImage = Math.random() > 0.2; // 80% chance of having an image
-        const imageUrl = hasImage ? `https://picsum.photos/seed/egypt${i}/300/200` : null; // Using Picsum for placeholder images
+        const imageUrl = hasImage ? `https://picsum.photos/seed/egypt  ${i}/300/200` : null; // Using Picsum for placeholder images
 
         data.push({
             id: `demo-record-${i}`,
@@ -858,7 +868,7 @@ function generateDemoData(count) {
             provider: {
                 name: provider
             },
-            isShownAt: `https://example.com/record/${i}`, // Placeholder link
+            isShownAt: `https://example.com/record/  ${i}`, // Placeholder link
             object: imageUrl // DPLA thumbnail URL field
         });
     }
