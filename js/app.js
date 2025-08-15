@@ -210,7 +210,7 @@ function setError(hasError) {
 }
 
 // --- Cache Management (using localStorage) ---
-const FULL_DATASET_CACHE_KEY = 'dpla_egypt_full_dataset_demo';
+const FULL_DATASET_CACHE_KEY = 'dpla_egypt_full_dataset_demo_v2'; // Updated cache key to force refresh
 
 function isCacheValid(cachedItem) {
     if (!cachedItem || !cachedItem.timestamp) return false;
@@ -265,13 +265,18 @@ function buildSearchQuery() {
     
     // Combine all queries with OR logic
     const combinedQuery = `(${subjectQueries}) OR (${spatialQueries}) OR (${generalQueries})`;
+    console.log("Built search query:", combinedQuery);
     return combinedQuery;
 }
 
 async function fetchAllDplaRecords() {
+    // Force refresh by clearing old cache
+    localStorage.removeItem('dpla_egypt_full_dataset_demo');
+    
     let allRecords = loadFullDatasetFromCache();
     
     if (allRecords) {
+        console.log("Using cached data with", allRecords.length, "records");
         return allRecords;
     }
     
@@ -283,13 +288,14 @@ async function fetchAllDplaRecords() {
         
         // Build comprehensive search query
         const searchQuery = buildSearchQuery();
-        console.log("Search query:", searchQuery);
         
         // First, get the total count
         const countUrl = new URL(API_PROXY_URL);
         countUrl.searchParams.set('endpoint', 'items');
         countUrl.searchParams.set('q', searchQuery);
         countUrl.searchParams.set('page_size', '0'); // Just get count
+        
+        console.log("Fetching record count with URL:", countUrl.toString());
         
         const countResponse = await fetch(countUrl.toString());
         if (!countResponse.ok) {
@@ -310,18 +316,22 @@ async function fetchAllDplaRecords() {
         const totalPages = Math.ceil(totalRecords / batchSize);
         let allDocs = [];
         
-        for (let page = 1; page <= totalPages; page++) {
+        console.log(`Fetching ${totalPages} pages of data...`);
+        
+        for (let page = 1; page <= Math.min(totalPages, 50); page++) { // Limit to 50 pages to avoid overwhelming
             const proxyUrl = new URL(API_PROXY_URL);
             proxyUrl.searchParams.set('endpoint', 'items');
             proxyUrl.searchParams.set('q', searchQuery);
             proxyUrl.searchParams.set('page_size', batchSize.toString());
             proxyUrl.searchParams.set('page', page.toString());
             
-            console.log(`Fetching page ${page} of ${totalPages}...`);
+            console.log(`Fetching page ${page} of ${Math.min(totalPages, 50)}...`);
             
             const response = await fetch(proxyUrl.toString());
             if (!response.ok) {
-                throw new Error(`Failed to fetch page ${page}: ${response.status}`);
+                console.error(`Failed to fetch page ${page}: ${response.status}`);
+                // Continue with next page instead of failing completely
+                continue;
             }
             
             const data = await response.json();
@@ -397,7 +407,7 @@ function renderTileView(records) {
 
         let imageHtml = '';
         if (imageUrl) {
-            imageHtml = `<img src="${imageUrl}" alt="Thumbnail for ${title}">`;
+            imageHtml = `<img src="${imageUrl}" alt="Thumbnail for ${title}" onerror="this.style.display='none'">`;
         } else {
             // Determine icon based on type
             let iconName = 'file'; // Default
@@ -460,7 +470,7 @@ function renderCompactImageView(records) {
 
         let imageHtml = '';
         if (imageUrl) {
-            imageHtml = `<img src="${imageUrl}" alt="Thumbnail for ${title}">`;
+            imageHtml = `<img src="${imageUrl}" alt="Thumbnail for ${title}" onerror="this.style.display='none'">`;
         } else {
             // Determine icon based on type (same logic as tile view)
             let iconName = 'file'; // Default
