@@ -2,6 +2,8 @@
 
 Explore Ancient Egypt through the vast collections of the Digital Public Library of America (DPLA). This web application provides access to thousands of images, texts, videos, and sounds related to ancient Egyptian civilization from libraries, archives, and museums across the United States.
 
+View demo: https://watrall.github.io/dpla-explorer-ancient-egypt/
+
 ## Features
 
 ### Comprehensive Search
