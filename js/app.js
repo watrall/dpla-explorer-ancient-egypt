@@ -10,6 +10,129 @@ const DEFAULT_ITEMS_PER_PAGE = 20;
 const SEARCH_DEBOUNCE_MS = 300; // Debounce search input
 const DEMO_RECORD_COUNT = 200; // Total number of demo records to generate
 
+// --- Comprehensive Ancient Egypt Keywords ---
+const ANCIENT_EGYPT_KEYWORDS = {
+    // LCSH Subject Terms
+    lcsh: [
+        "Egypt--Antiquities",
+        "Egypt--History--To 332 B.C.",
+        "Egypt--History--332-30 B.C.",
+        "Egypt--History--30 B.C.-640 A.D.",
+        "Egyptology",
+        "Hieroglyphics",
+        "Pharaohs",
+        "Pyramids",
+        "Mummies",
+        "Egyptian language",
+        "Egyptian literature",
+        "Egyptian mythology",
+        "Excavations (Archaeology)--Egypt",
+        "Art, Egyptian",
+        "Sculpture, Egyptian",
+        "Painting, Egyptian",
+        "Pottery, Egyptian",
+        "Jewelry--Egypt",
+        "Tombs--Egypt",
+        "Temples--Egypt",
+        "Religion, Egyptian",
+        "Isis (Egyptian deity)",
+        "Osiris (Egyptian deity)",
+        "Ra (Egyptian deity)",
+        "Horus (Egyptian deity)",
+        "Anubis (Egyptian deity)",
+        "Thoth (Egyptian deity)",
+        "Sekhmet (Egyptian deity)",
+        "Hathor (Egyptian deity)",
+        "Ptah (Egyptian deity)"
+    ],
+    
+    // TGN Geographic Names
+    tgn: [
+        "Egypt",
+        "Giza",
+        "Luxor",
+        "Thebes (Egypt)",
+        "Abu Simbel (Egypt)",
+        "Valley of the Kings (Egypt)",
+        "Karnak (Egypt)",
+        "Memphis (Egypt)",
+        "Alexandria (Egypt)",
+        "Aswan (Egypt)",
+        "Abydos (Egypt)",
+        "Saqqara (Egypt)",
+        "Deir el-Bahri (Egypt)",
+        "Dendera (Egypt)",
+        "Edfu (Egypt)",
+        "Kom Ombo (Egypt)",
+        "Tanis (Egypt)",
+        "Amarna (Egypt)",
+        "Nile River (Egypt)"
+    ],
+    
+    // AAT Terms
+    aat: [
+        "Archaeological artifacts",
+        "Papyri",
+        "Sarcophagi",
+        "Canopic jars",
+        "Shabti figures",
+        "Cartouches",
+        "Obelisks",
+        "Stelae",
+        "Reliefs (Sculptures)",
+        "Mummy portraits",
+        "Amulets",
+        "Scarabs",
+        "Ushabti",
+        "Coffins",
+        "Temple architecture",
+        "Pyramid architecture",
+        "Mastabas",
+        "Hypogea",
+        "Tombs",
+        "Hieroglyphs",
+        "Demotic",
+        "Coptic (Script)",
+        "Egyptian blue (Pigment)",
+        "Faience (Ceramic)",
+        "Alabaster (Stone)"
+    ],
+    
+    // Period Names and Eras
+    periods: [
+        "Predynastic Period",
+        "Early Dynastic Period",
+        "Old Kingdom",
+        "First Intermediate Period",
+        "Middle Kingdom",
+        "Second Intermediate Period",
+        "New Kingdom",
+        "Third Intermediate Period",
+        "Late Period",
+        "Ptolemaic Period",
+        "Roman Period",
+        "3100 BCE",
+        "332 BCE",
+        "30 BCE",
+        "640 CE"
+    ],
+    
+    // Additional Keywords
+    general: [
+        "ancient egypt",
+        "egyptian",
+        "pharaoh",
+        "tutankhamun",
+        "cleopatra",
+        "ramesses",
+        "hatshepsut",
+        "akhmenaten",
+        "nile",
+        "sphinx",
+        "rosetta stone"
+    ]
+};
+
 // --- Date Range Definitions ---
 const DATE_RANGES = {
     "before-1800": { start: null, end: 1799 },
@@ -152,6 +275,22 @@ function loadFullDatasetFromCache() {
 
 // --- API Interaction (Real DPLA Data via DigitalOcean Function) ---
 
+// Build comprehensive search query
+function buildSearchQuery() {
+    // Combine all keywords into a single search query
+    const allKeywords = [
+        ...ANCIENT_EGYPT_KEYWORDS.lcsh,
+        ...ANCIENT_EGYPT_KEYWORDS.tgn,
+        ...ANCIENT_EGYPT_KEYWORDS.aat,
+        ...ANCIENT_EGYPT_KEYWORDS.periods,
+        ...ANCIENT_EGYPT_KEYWORDS.general
+    ];
+    
+    // Create OR query for all keywords
+    const queryParts = allKeywords.map(keyword => `"${keyword}"`).join(' OR ');
+    return queryParts;
+}
+
 async function fetchAllDplaRecords() {
     let allRecords = loadFullDatasetFromCache();
     
@@ -165,10 +304,14 @@ async function fetchAllDplaRecords() {
     try {
         console.log("Fetching all records from DPLA API via DigitalOcean proxy...");
         
+        // Build comprehensive search query
+        const searchQuery = buildSearchQuery();
+        console.log("Search query:", searchQuery);
+        
         // First, get the total count
         const countUrl = new URL(API_PROXY_URL);
         countUrl.searchParams.set('endpoint', 'items');
-        countUrl.searchParams.set('q', 'ancient egypt');
+        countUrl.searchParams.set('q', searchQuery);
         countUrl.searchParams.set('page_size', '0'); // Just get count
         
         const countResponse = await fetch(countUrl.toString());
@@ -188,7 +331,7 @@ async function fetchAllDplaRecords() {
         for (let page = 1; page <= totalPages; page++) {
             const proxyUrl = new URL(API_PROXY_URL);
             proxyUrl.searchParams.set('endpoint', 'items');
-            proxyUrl.searchParams.set('q', 'ancient egypt');
+            proxyUrl.searchParams.set('q', searchQuery);
             proxyUrl.searchParams.set('page_size', batchSize.toString());
             proxyUrl.searchParams.set('page', page.toString());
             
@@ -703,7 +846,9 @@ function filterRecords() {
     if (appState.searchTerm) {
         results = results.filter(record =>
             (record.sourceResource?.title?.[0]?.toLowerCase().includes(appState.searchTerm)) ||
-            (record.sourceResource?.description?.[0]?.toLowerCase().includes(appState.searchTerm))
+            (record.sourceResource?.description?.[0]?.toLowerCase().includes(appState.searchTerm)) ||
+            (record.sourceResource?.subject?.some(subject => subject.toLowerCase().includes(appState.searchTerm))) ||
+            (record.sourceResource?.spatial?.some(spatial => spatial.toLowerCase().includes(appState.searchTerm)))
         );
     }
 
