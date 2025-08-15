@@ -10,109 +10,33 @@ const DEFAULT_ITEMS_PER_PAGE = 20;
 const SEARCH_DEBOUNCE_MS = 300; // Debounce search input
 const DEMO_RECORD_COUNT = 200; // Total number of demo records to generate
 
-// --- Comprehensive Ancient Egypt Keywords ---
-const ANCIENT_EGYPT_KEYWORDS = {
-    // LCSH Subject Terms
-    lcsh: [
-        "Egypt--Antiquities",
-        "Egypt--History--To 332 B.C.",
-        "Egypt--History--332-30 B.C.",
-        "Egypt--History--30 B.C.-640 A.D.",
-        "Egyptology",
-        "Hieroglyphics",
-        "Pharaohs",
-        "Pyramids",
-        "Mummies",
-        "Egyptian language",
-        "Egyptian literature",
-        "Egyptian mythology",
-        "Excavations (Archaeology)--Egypt",
-        "Art, Egyptian",
-        "Sculpture, Egyptian",
-        "Painting, Egyptian",
-        "Pottery, Egyptian",
-        "Jewelry--Egypt",
-        "Tombs--Egypt",
-        "Temples--Egypt",
-        "Religion, Egyptian"
-    ],
-    
-    // TGN Geographic Names
-    tgn: [
-        "Egypt",
-        "Giza",
-        "Luxor",
-        "Thebes (Egypt)",
-        "Abu Simbel (Egypt)",
-        "Valley of the Kings (Egypt)",
-        "Karnak (Egypt)",
-        "Memphis (Egypt)",
-        "Alexandria (Egypt)",
-        "Aswan (Egypt)",
-        "Abydos (Egypt)",
-        "Saqqara (Egypt)",
-        "Deir el-Bahri (Egypt)",
-        "Dendera (Egypt)",
-        "Edfu (Egypt)",
-        "Kom Ombo (Egypt)",
-        "Tanis (Egypt)",
-        "Amarna (Egypt)",
-        "Nile River (Egypt)"
-    ],
-    
-    // AAT Terms
-    aat: [
-        "Archaeological artifacts",
-        "Papyri",
-        "Sarcophagi",
-        "Canopic jars",
-        "Shabti figures",
-        "Cartouches",
-        "Obelisks",
-        "Stelae",
-        "Reliefs (Sculptures)",
-        "Mummy portraits",
-        "Amulets",
-        "Scarabs",
-        "Ushabti",
-        "Coffins",
-        "Temple architecture",
-        "Pyramid architecture",
-        "Mastabas",
-        "Hypogea",
-        "Tombs",
-        "Hieroglyphs"
-    ],
-    
-    // Period Names and Eras
-    periods: [
-        "Predynastic Period",
-        "Early Dynastic Period",
-        "Old Kingdom",
-        "First Intermediate Period",
-        "Middle Kingdom",
-        "Second Intermediate Period",
-        "New Kingdom",
-        "Third Intermediate Period",
-        "Late Period",
-        "Ptolemaic Period"
-    ],
-    
-    // Additional Keywords
-    general: [
-        "ancient egypt",
-        "egyptian",
-        "pharaoh",
-        "tutankhamun",
-        "cleopatra",
-        "ramesses",
-        "hatshepsut",
-        "akhmenaten",
-        "nile",
-        "sphinx",
-        "rosetta stone"
-    ]
-};
+// --- Simplified Ancient Egypt Keywords ---
+const ANCIENT_EGYPT_KEYWORDS = [
+    "Egypt--Antiquities",
+    "Egypt--History--To 332 B.C.",
+    "ancient egypt",
+    "egyptian",
+    "pharaoh",
+    "tutankhamun",
+    "cleopatra",
+    "pyramids",
+    "mummies",
+    "hieroglyphics",
+    "egyptology",
+    "Giza",
+    "Luxor",
+    "Thebes",
+    "Karnak",
+    "Valley of the Kings",
+    "Abu Simbel",
+    "Memphis",
+    "Nile",
+    "sphinx",
+    "rosetta stone",
+    "ramesses",
+    "hatshepsut",
+    "akhmenaten"
+];
 
 // --- Date Range Definitions ---
 const DATE_RANGES = {
@@ -210,7 +134,7 @@ function setError(hasError) {
 }
 
 // --- Cache Management (using localStorage) ---
-const FULL_DATASET_CACHE_KEY = 'dpla_egypt_full_dataset_demo_v2'; // Updated cache key to force refresh
+const FULL_DATASET_CACHE_KEY = 'dpla_egypt_full_dataset_demo_v3'; // Updated cache key to force refresh
 
 function isCacheValid(cachedItem) {
     if (!cachedItem || !cachedItem.timestamp) return false;
@@ -256,22 +180,19 @@ function loadFullDatasetFromCache() {
 
 // --- API Interaction (Real DPLA Data via DigitalOcean Function) ---
 
-// Build comprehensive search query using field-specific searches
+// Build simpler search query to avoid API limits
 function buildSearchQuery() {
-    // Create field-specific queries for better results
-    const subjectQueries = ANCIENT_EGYPT_KEYWORDS.lcsh.map(term => `subject:"${term}"`).join(' OR ');
-    const spatialQueries = ANCIENT_EGYPT_KEYWORDS.tgn.map(term => `spatial:"${term}"`).join(' OR ');
-    const generalQueries = ANCIENT_EGYPT_KEYWORDS.general.map(term => `"${term}"`).join(' OR ');
-    
-    // Combine all queries with OR logic
-    const combinedQuery = `(${subjectQueries}) OR (${spatialQueries}) OR (${generalQueries})`;
-    console.log("Built search query:", combinedQuery);
-    return combinedQuery;
+    // Join keywords with OR, but limit the number to avoid query length issues
+    const limitedKeywords = ANCIENT_EGYPT_KEYWORDS.slice(0, 10);
+    const queryParts = limitedKeywords.map(keyword => `"${keyword}"`).join(' OR ');
+    console.log("Built search query:", queryParts);
+    return queryParts;
 }
 
 async function fetchAllDplaRecords() {
     // Force refresh by clearing old cache
     localStorage.removeItem('dpla_egypt_full_dataset_demo');
+    localStorage.removeItem('dpla_egypt_full_dataset_demo_v2');
     
     let allRecords = loadFullDatasetFromCache();
     
@@ -286,7 +207,7 @@ async function fetchAllDplaRecords() {
     try {
         console.log("Fetching all records from DPLA API via DigitalOcean proxy...");
         
-        // Build comprehensive search query
+        // Build simpler search query
         const searchQuery = buildSearchQuery();
         
         // First, get the total count
@@ -299,7 +220,9 @@ async function fetchAllDplaRecords() {
         
         const countResponse = await fetch(countUrl.toString());
         if (!countResponse.ok) {
-            throw new Error(`Failed to get record count: ${countResponse.status}`);
+            const errorText = await countResponse.text();
+            console.error("API Error Response:", errorText);
+            throw new Error(`Failed to get record count: ${countResponse.status} - ${errorText}`);
         }
         
         const countData = await countResponse.json();
@@ -316,16 +239,16 @@ async function fetchAllDplaRecords() {
         const totalPages = Math.ceil(totalRecords / batchSize);
         let allDocs = [];
         
-        console.log(`Fetching ${totalPages} pages of data...`);
+        console.log(`Fetching ${Math.min(totalPages, 20)} pages of data...`); // Limit to 20 pages
         
-        for (let page = 1; page <= Math.min(totalPages, 50); page++) { // Limit to 50 pages to avoid overwhelming
+        for (let page = 1; page <= Math.min(totalPages, 20); page++) {
             const proxyUrl = new URL(API_PROXY_URL);
             proxyUrl.searchParams.set('endpoint', 'items');
             proxyUrl.searchParams.set('q', searchQuery);
             proxyUrl.searchParams.set('page_size', batchSize.toString());
             proxyUrl.searchParams.set('page', page.toString());
             
-            console.log(`Fetching page ${page} of ${Math.min(totalPages, 50)}...`);
+            console.log(`Fetching page ${page} of ${Math.min(totalPages, 20)}...`);
             
             const response = await fetch(proxyUrl.toString());
             if (!response.ok) {
@@ -354,6 +277,27 @@ async function fetchAllDplaRecords() {
     } catch (error) {
         console.error("Error fetching full dataset:", error);
         setError(true);
+        // Try fallback approach with a simpler query
+        try {
+            console.log("Trying fallback approach with simpler query...");
+            const fallbackQuery = '"ancient egypt" OR "egyptian"';
+            const fallbackUrl = new URL(API_PROXY_URL);
+            fallbackUrl.searchParams.set('endpoint', 'items');
+            fallbackUrl.searchParams.set('q', fallbackQuery);
+            fallbackUrl.searchParams.set('page_size', '100');
+            
+            const fallbackResponse = await fetch(fallbackUrl.toString());
+            if (fallbackResponse.ok) {
+                const fallbackData = await fallbackResponse.json();
+                if (fallbackData && Array.isArray(fallbackData.docs)) {
+                    console.log(`Fallback successful, fetched ${fallbackData.docs.length} records`);
+                    saveFullDatasetToCache(fallbackData.docs);
+                    return fallbackData.docs;
+                }
+            }
+        } catch (fallbackError) {
+            console.error("Fallback also failed:", fallbackError);
+        }
         return null;
     } finally {
         setLoading(false);
