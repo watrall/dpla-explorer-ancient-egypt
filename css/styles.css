@@ -336,15 +336,15 @@ main {
 }
 
 /* --- Updated Spinner Styles --- */
-.loader {
+.loading .loader {
   animation: rotate 1s infinite;
   height: 50px;
   width: 50px;
   margin: 0 auto 15px;
 }
 
-.loader:before,
-.loader:after {
+.loading .loader:before,
+.loading .loader:after {
   border-radius: 50%;
   content: "";
   display: block;
@@ -352,14 +352,14 @@ main {
   width: 20px;
 }
 
-.loader:before {
+.loading .loader:before {
   animation: ball1 1s infinite;
   background-color: #ecf0f1; /* Using secondary color */
   box-shadow: 30px 0 0 var(--primary-color); /* Using primary color */
   margin-bottom: 10px;
 }
 
-.loader:after {
+.loading .loader:after {
   animation: ball2 1s infinite;
   background-color: var(--primary-color); /* Using primary color */
   box-shadow: 30px 0 0 #ecf0f1; /* Using secondary color */
