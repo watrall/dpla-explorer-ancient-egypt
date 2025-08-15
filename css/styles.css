@@ -281,26 +281,17 @@ main {
   flex-shrink: 0;
 }
 
-/* --- Reduced padding for view buttons to match height ---
-   All other elements in the toolbar (search input, dropdown buttons, clear button)
-   have a padding-top/bottom of 7px. Let's make the view buttons match that.
-   Original padding: 7px 10px.
-   15% reduction: ~6px 9px (rounded to 6px 9px for practicality)
-*/
 .toolbar .view-btn {
   background-color: #fff;
   border: 1px solid var(--border-color);
   border-radius: 4px;
-  /* --- Updated Padding --- */
-  padding: 6px 9px; /* ~15% smaller */
-  /* --------------------- */
+  padding: 7px 10px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
   transition: background-color 0.2s ease, border-color 0.2s ease;
   flex-shrink: 0;
-  /* Ensure consistent line-height */
   line-height: 1;
 }
 
