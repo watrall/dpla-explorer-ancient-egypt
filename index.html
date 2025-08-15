@@ -156,6 +156,14 @@
         </footer>
     </div>
 
+    <script>
+        // Initialize Lucide icons after the library is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                lucide.createIcons();
+            }
+        });
+    </script>
     <script src="js/app.js"></script>
 </body>
 </html>
