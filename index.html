@@ -16,6 +16,7 @@
             margin: 0 0.2em;
         }
     </style>
+    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="hero-header">
@@ -150,54 +151,20 @@
         </main>
 
         <footer>
-            <p>Made with <i data-lucide="heart" class="footer-heart-icon"></i> by Ethan Watrall using the <a href="https://dp.la/" target="_blank">DPLA</a> <a href="https://pro.dp.la/developers" target="_blank">API</a>.</p>
+            <p>Made with ❤️ by Ethan Watrall using the <a href="https://dp.la/" target="_blank">DPLA</a> <a href="https://pro.dp.la/developers" target="_blank">API</a>.</p>
             <p>Hero header background photo by <a href="https://unsplash.com/@dmitrii_zhodzishskii?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Dmitrii Zhodzishskii</a> on <a href="https://unsplash.com/photos/a-group-of-statues-in-a-room-next-to-a-wall-cOihXsrJFRc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a></p>
         </footer>
     </div>
 
     <script>
-        // Load Lucide icons dynamically
-        function loadLucide() {
-            return new Promise((resolve, reject) => {
-                const script = document.createElement('script');
-                script.src = 'https://unpkg.com/lucide@0.263.1/dist/umd/lucide.js';
-                script.onload = () => {
-                    // Wait a bit for the library to fully initialize
-                    setTimeout(() => {
-                        if (typeof lucide !== 'undefined') {
-                            try {
-                                lucide.createIcons();
-                                resolve();
-                            } catch (e) {
-                                console.warn('Lucide initialization warning:', e);
-                                resolve(); // Still resolve even if there's a warning
-                            }
-                        } else {
-                            reject(new Error('Lucide library not available'));
-                        }
-                    }, 100);
-                };
-                script.onerror = reject;
-                document.head.appendChild(script);
-            });
-        }
-
-        // Initialize Lucide icons after page load
-        window.addEventListener('load', async function() {
-            try {
-                await loadLucide();
-                console.log('Lucide icons loaded successfully');
-            } catch (error) {
-                console.error('Failed to load Lucide icons:', error);
-                // Fallback to text if icons don't load
-                document.querySelectorAll('[data-lucide]').forEach(el => {
-                    const iconName = el.getAttribute('data-lucide');
-                    if (iconName === 'search') el.textContent = '🔍';
-                    else if (iconName === 'align-justify') el.textContent = '☰';
-                    else if (iconName === 'layout-list') el.textContent = '≡';
-                    else if (iconName === 'layout-grid') el.textContent = '⊞';
-                    else if (iconName === 'heart') el.textContent = '❤';
-                });
+        // Initialize Lucide icons when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            if (typeof lucide !== 'undefined') {
+                try {
+                    lucide.createIcons();
+                } catch (e) {
+                    console.warn('Lucide icons failed to initialize:', e);
+                }
             }
         });
     </script>
