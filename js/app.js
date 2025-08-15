@@ -24,8 +24,8 @@ const DATE_RANGES = {
 let appState = {
     allRecords: [],
     filteredRecords: [],
-    // --- Update Initial View to Compact Image ---
-    currentView: 'compact-image', // 'list', 'compact-image', or 'tile' // <-- Changed default
+    // --- Update Initial View to Tile View ---
+    currentView: 'tile', // 'list', 'compact-image', or 'tile'
     // -----------------------------------------
     currentPage: 1,
     itemsPerPage: DEFAULT_ITEMS_PER_PAGE,
@@ -152,75 +152,67 @@ function loadFullDatasetFromCache() {
 
 // --- API Interaction (Real DPLA Data via DigitalOcean Function) ---
 
-async function fetchFullDplaDataset() {
-    let fullDataset = loadFullDatasetFromCache();
-
-    if (fullDataset) {
-        return fullDataset;
+async function fetchAllDplaRecords() {
+    let allRecords = loadFullDatasetFromCache();
+    
+    if (allRecords) {
+        return allRecords;
     }
-
+    
     setLoading(true);
     setError(false);
-
-    // Simulate network delay
-    await new Promise(resolve => setTimeout(resolve, 800));
-
+    
     try {
-        console.log("Fetching full dataset from DPLA API via DigitalOcean proxy...");
-        // --- Construct the request to YOUR proxy function ---
-        // The proxy expects an 'endpoint' query param and forwards others.
-        const proxyUrl = new URL(API_PROXY_URL);
-        // Set the DPLA endpoint
-        proxyUrl.searchParams.set('endpoint', 'items');
-        // Set the search query
-        proxyUrl.searchParams.set('q', 'ancient egypt');
-        // Request a large page size to get more data initially.
-        // Note: DPLA API might have its own limits. Check DPLA docs.
-        // For initial load, we'll fetch a substantial page.
-        // Pagination for user interaction will be handled separately.
-        proxyUrl.searchParams.set('page_size', '100'); // Fetch 100 items
-        // Optionally, sort by score or date if desired
-        // proxyUrl.searchParams.set('sort_by', 'score'); // Or 'date' (descending by default for date)
-
-        console.log("Calling proxy URL:", proxyUrl.toString());
-
-        const response = await fetch(proxyUrl.toString());
-
-        if (!response.ok) {
-            // If the proxy returned an error (e.g., 400, 403, 502 from DPLA)
-            // Or if there was a network error reaching the proxy itself (response.ok is false)
-            const errorText = await response.text();
-            console.error(`API request failed with status ${response.status}:`, errorText);
-            throw new Error(`API request failed (${response.status}): ${errorText}`);
+        console.log("Fetching all records from DPLA API via DigitalOcean proxy...");
+        
+        // First, get the total count
+        const countUrl = new URL(API_PROXY_URL);
+        countUrl.searchParams.set('endpoint', 'items');
+        countUrl.searchParams.set('q', 'ancient egypt');
+        countUrl.searchParams.set('page_size', '0'); // Just get count
+        
+        const countResponse = await fetch(countUrl.toString());
+        if (!countResponse.ok) {
+            throw new Error(`Failed to get record count: ${countResponse.status}`);
         }
-
-        const data = await response.json();
-
-        // --- Process the DPLA API Response ---
-        // The DPLA API returns an object like { count: N, start: 0, limit: 100, docs: [...] }
-        // We primarily need the 'docs' array which contains the item records.
-        if (data && Array.isArray(data.docs)) {
-             // The proxy returns the raw DPLA response structure.
-             // appState.allRecords expects an array of item objects directly.
-             // So we assign data.docs.
-             fullDataset = data.docs;
-             console.log(`Successfully fetched ${fullDataset.length} records from DPLA.`);
-             saveFullDatasetToCache(fullDataset); // Cache the fetched data
-             return fullDataset;
-
-        } else if (data && typeof data === 'object' && data.hasOwnProperty('count')) {
-             // Likely a valid DPLA response object, but docs might be empty or malformed
-             console.warn("DPLA API response received, but 'docs' array is missing or invalid:", data);
-             // Treat as empty dataset
-             fullDataset = [];
-             saveFullDatasetToCache(fullDataset);
-             return fullDataset;
-        } else {
-            // Unexpected response structure
-            console.error("Unexpected API response structure:", data);
-            throw new Error("Received unexpected data format from API proxy.");
+        
+        const countData = await countResponse.json();
+        const totalRecords = countData.count;
+        console.log(`Total records to fetch: ${totalRecords}`);
+        
+        // Now fetch all records in batches
+        const batchSize = 100;
+        const totalPages = Math.ceil(totalRecords / batchSize);
+        let allDocs = [];
+        
+        for (let page = 1; page <= totalPages; page++) {
+            const proxyUrl = new URL(API_PROXY_URL);
+            proxyUrl.searchParams.set('endpoint', 'items');
+            proxyUrl.searchParams.set('q', 'ancient egypt');
+            proxyUrl.searchParams.set('page_size', batchSize.toString());
+            proxyUrl.searchParams.set('page', page.toString());
+            
+            console.log(`Fetching page ${page} of ${totalPages}...`);
+            
+            const response = await fetch(proxyUrl.toString());
+            if (!response.ok) {
+                throw new Error(`Failed to fetch page ${page}: ${response.status}`);
+            }
+            
+            const data = await response.json();
+            if (data && Array.isArray(data.docs)) {
+                allDocs = allDocs.concat(data.docs);
+                console.log(`Fetched ${data.docs.length} records from page ${page}`);
+            } else {
+                console.warn(`No docs found in page ${page} response`);
+            }
         }
-
+        
+        allRecords = allDocs;
+        console.log(`Successfully fetched ${allRecords.length} total records from DPLA.`);
+        saveFullDatasetToCache(allRecords); // Cache the fetched data
+        return allRecords;
+        
     } catch (error) {
         console.error("Error fetching full dataset:", error);
         setError(true);
@@ -406,14 +398,54 @@ function renderCurrentView() {
 
     if (appState.currentView === 'list') {
         renderListView(recordsToShow);
-    } else if (appState.currentView === 'tile') { // <-- Added 'tile' check
+    } else if (appState.currentView === 'tile') {
         renderTileView(recordsToShow);
-    } else if (appState.currentView === 'compact-image') { // <-- Added 'compact-image' check
+    } else if (appState.currentView === 'compact-image') {
         renderCompactImageView(recordsToShow);
     }
     updatePaginationControls(appState.filteredRecords.length); // Total count for pagination
 }
 
+// --- Dropdown Toggle Function ---
+function toggleDropdown(button, menu) {
+    const isExpanded = button.getAttribute('aria-expanded') === 'true';
+    
+    // Close all dropdowns first
+    document.querySelectorAll('.custom-dropdown .dropdown-menu').forEach(dropdown => {
+        dropdown.classList.remove('show');
+        const dropdownButton = dropdown.previousElementSibling;
+        if (dropdownButton) {
+            dropdownButton.setAttribute('aria-expanded', 'false');
+            dropdownButton.classList.remove('active');
+        }
+    });
+    
+    // Toggle the clicked dropdown
+    if (!isExpanded) {
+        menu.classList.add('show');
+        button.setAttribute('aria-expanded', 'true');
+        button.classList.add('active');
+    } else {
+        menu.classList.remove('show');
+        button.setAttribute('aria-expanded', 'false');
+        button.classList.remove('active');
+    }
+}
+
+// Close dropdowns when clicking outside
+document.addEventListener('click', (e) => {
+    if (!e.target.closest('.custom-dropdown')) {
+        document.querySelectorAll('.custom-dropdown .dropdown-menu').forEach(menu => {
+            menu.classList.remove('show');
+            const button = menu.previousElementSibling;
+            if (button) {
+                button.setAttribute('aria-expanded', 'false');
+                button.classList.remove('active');
+            }
+        });
+    }
+});
+// ------------------------------
 
 // --- Event Handlers ---
 
@@ -429,7 +461,7 @@ function setupEventListeners() {
 
         if (viewName === 'list') {
             elements.listViewBtn.classList.add('active');
-        } else if (viewName === 'compact-image') { // <-- Added 'compact-image' check
+        } else if (viewName === 'compact-image') {
             elements.compactImageViewBtn.classList.add('active');
         } else if (viewName === 'tile') {
             elements.tileViewBtn.classList.add('active');
@@ -439,7 +471,7 @@ function setupEventListeners() {
     }
 
     elements.listViewBtn.addEventListener('click', () => setView('list'));
-    elements.compactImageViewBtn.addEventListener('click', () => setView('compact-image')); // <-- Added listener
+    elements.compactImageViewBtn.addEventListener('click', () => setView('compact-image'));
     elements.tileViewBtn.addEventListener('click', () => setView('tile'));
     // ----------------------------------------------------
 
@@ -537,6 +569,7 @@ function setupEventListeners() {
             appState.selectedTypes = [];
             appState.selectedInstitutions = [];
             appState.selectedDateRange = '';
+            appState.searchTerm = '';
             appState.currentPage = 1;
 
             // Reset UI elements
@@ -562,6 +595,11 @@ function setupEventListeners() {
                         radio.checked = false;
                     }
                 });
+            }
+            
+            // Clear search input
+            if (elements.searchInput) {
+                elements.searchInput.value = '';
             }
 
             filterAndRender(); // Use the new filter-aware function
@@ -607,7 +645,9 @@ function populateFilters() {
             checkbox.value = type;
             checkbox.addEventListener('change', (e) => {
                 if (e.target.checked) {
-                    appState.selectedTypes.push(type);
+                    if (!appState.selectedTypes.includes(type)) {
+                        appState.selectedTypes.push(type);
+                    }
                 } else {
                     appState.selectedTypes = appState.selectedTypes.filter(t => t !== type);
                 }
@@ -635,7 +675,9 @@ function populateFilters() {
             checkbox.value = inst;
             checkbox.addEventListener('change', (e) => {
                 if (e.target.checked) {
-                    appState.selectedInstitutions.push(inst);
+                    if (!appState.selectedInstitutions.includes(inst)) {
+                        appState.selectedInstitutions.push(inst);
+                    }
                 } else {
                     appState.selectedInstitutions = appState.selectedInstitutions.filter(i => i !== inst);
                 }
@@ -760,11 +802,11 @@ async function initApp() {
 
     // --- Update Initial Active Button State ---
     elements.listViewBtn.classList.remove('active');
-    elements.compactImageViewBtn.classList.add('active'); // Set Compact Image View as default active
-    elements.tileViewBtn.classList.remove('active');
+    elements.compactImageViewBtn.classList.remove('active');
+    elements.tileViewBtn.classList.add('active'); // Set Tile View as default active
     // ---------------------------------------
 
-    const fullDataset = await fetchFullDplaDataset();
+    const fullDataset = await fetchAllDplaRecords();
 
     if (fullDataset && Array.isArray(fullDataset)) {
         appState.allRecords = fullDataset;
@@ -772,7 +814,7 @@ async function initApp() {
         // --- Populate Filters after data is loaded ---
         populateFilters();
         // --------------------------------------------
-        renderCurrentView(); // This will render the first page of the 'compact-image' view
+        renderCurrentView(); // This will render the first page of the 'tile' view
         showElement(elements.contentArea);
         console.log("Application initialized successfully with real DPLA data.");
     } else if (!appState.hasError && !appState.isLoading) {
