@@ -267,6 +267,7 @@ function renderTileView(records) {
     elements.contentArea.innerHTML = '';
     elements.contentArea.appendChild(gridElement);
 
+    // Initialize Lucide icons after rendering
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -338,6 +339,7 @@ function renderCompactImageView(records) {
     elements.contentArea.innerHTML = '';
     elements.contentArea.appendChild(listElement);
 
+    // Initialize Lucide icons after rendering
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -673,6 +675,7 @@ function filterAndRender() {
 }
 
 async function initApp() {
+    // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -758,6 +761,7 @@ function generateDemoData(count) {
     return data;
 }
 
+// Initialize the app when the DOM is loaded
 if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', initApp);
 } else {
