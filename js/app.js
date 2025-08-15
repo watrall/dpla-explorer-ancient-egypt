@@ -34,16 +34,7 @@ const ANCIENT_EGYPT_KEYWORDS = {
         "Jewelry--Egypt",
         "Tombs--Egypt",
         "Temples--Egypt",
-        "Religion, Egyptian",
-        "Isis (Egyptian deity)",
-        "Osiris (Egyptian deity)",
-        "Ra (Egyptian deity)",
-        "Horus (Egyptian deity)",
-        "Anubis (Egyptian deity)",
-        "Thoth (Egyptian deity)",
-        "Sekhmet (Egyptian deity)",
-        "Hathor (Egyptian deity)",
-        "Ptah (Egyptian deity)"
+        "Religion, Egyptian"
     ],
     
     // TGN Geographic Names
@@ -90,12 +81,7 @@ const ANCIENT_EGYPT_KEYWORDS = {
         "Mastabas",
         "Hypogea",
         "Tombs",
-        "Hieroglyphs",
-        "Demotic",
-        "Coptic (Script)",
-        "Egyptian blue (Pigment)",
-        "Faience (Ceramic)",
-        "Alabaster (Stone)"
+        "Hieroglyphs"
     ],
     
     // Period Names and Eras
@@ -109,12 +95,7 @@ const ANCIENT_EGYPT_KEYWORDS = {
         "New Kingdom",
         "Third Intermediate Period",
         "Late Period",
-        "Ptolemaic Period",
-        "Roman Period",
-        "3100 BCE",
-        "332 BCE",
-        "30 BCE",
-        "640 CE"
+        "Ptolemaic Period"
     ],
     
     // Additional Keywords
@@ -275,20 +256,16 @@ function loadFullDatasetFromCache() {
 
 // --- API Interaction (Real DPLA Data via DigitalOcean Function) ---
 
-// Build comprehensive search query
+// Build comprehensive search query using field-specific searches
 function buildSearchQuery() {
-    // Combine all keywords into a single search query
-    const allKeywords = [
-        ...ANCIENT_EGYPT_KEYWORDS.lcsh,
-        ...ANCIENT_EGYPT_KEYWORDS.tgn,
-        ...ANCIENT_EGYPT_KEYWORDS.aat,
-        ...ANCIENT_EGYPT_KEYWORDS.periods,
-        ...ANCIENT_EGYPT_KEYWORDS.general
-    ];
+    // Create field-specific queries for better results
+    const subjectQueries = ANCIENT_EGYPT_KEYWORDS.lcsh.map(term => `subject:"${term}"`).join(' OR ');
+    const spatialQueries = ANCIENT_EGYPT_KEYWORDS.tgn.map(term => `spatial:"${term}"`).join(' OR ');
+    const generalQueries = ANCIENT_EGYPT_KEYWORDS.general.map(term => `"${term}"`).join(' OR ');
     
-    // Create OR query for all keywords
-    const queryParts = allKeywords.map(keyword => `"${keyword}"`).join(' OR ');
-    return queryParts;
+    // Combine all queries with OR logic
+    const combinedQuery = `(${subjectQueries}) OR (${spatialQueries}) OR (${generalQueries})`;
+    return combinedQuery;
 }
 
 async function fetchAllDplaRecords() {
@@ -323,6 +300,11 @@ async function fetchAllDplaRecords() {
         const totalRecords = countData.count;
         console.log(`Total records to fetch: ${totalRecords}`);
         
+        if (totalRecords === 0) {
+            console.log("No records found with the search query");
+            return [];
+        }
+        
         // Now fetch all records in batches
         const batchSize = 100;
         const totalPages = Math.ceil(totalRecords / batchSize);
@@ -349,6 +331,9 @@ async function fetchAllDplaRecords() {
             } else {
                 console.warn(`No docs found in page ${page} response`);
             }
+            
+            // Add a small delay to avoid overwhelming the API
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
         
         allRecords = allDocs;
