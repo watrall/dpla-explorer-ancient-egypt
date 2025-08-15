@@ -16,6 +16,7 @@
             margin: 0 0.2em;
         }
     </style>
+    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.js"></script>
 </head>
 <body>
     <div class="hero-header">
@@ -32,7 +33,7 @@
                 <div class="search-container">
                     <div class="search-input-wrapper">
                         <input type="text" id="searchInput" placeholder="Search within results...">
-                        <i class="search-icon">🔍</i>
+                        <i data-lucide="search" class="search-icon"></i>
                     </div>
                 </div>
 
@@ -108,13 +109,13 @@
 
                 <div class="view-toggle">
                     <button id="listViewBtn" aria-label="List View" class="view-btn">
-                         <span>☰</span>
+                         <i data-lucide="align-justify"></i>
                     </button>
                     <button id="compactImageViewBtn" aria-label="Compact Image View" class="view-btn">
-                         <span>≡</span>
+                         <i data-lucide="layout-list"></i>
                     </button>
                     <button id="tileViewBtn" aria-label="Tile View" class="view-btn">
-                         <span>⊞</span>
+                         <i data-lucide="layout-grid"></i>
                     </button>
                 </div>
             </div>
@@ -150,16 +151,15 @@
         </main>
 
         <footer>
-            <p>Made with ❤️ by Ethan Watrall using the <a href="https://dp.la/" target="_blank">DPLA</a> <a href="https://pro.dp.la/developers" target="_blank">API</a>.</p>
+            <p>Made with <i data-lucide="heart" class="footer-heart-icon"></i> by Ethan Watrall using the <a href="https://dp.la/" target="_blank">DPLA</a> <a href="https://pro.dp.la/developers" target="_blank">API</a>.</p>
             <p>Hero header background photo by <a href="https://unsplash.com/@dmitrii_zhodzishskii?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Dmitrii Zhodzishskii</a> on <a href="https://unsplash.com/photos/a-group-of-statues-in-a-room-next-to-a-wall-cOihXsrJFRc?utm_content=creditCopyText&utm_medium=referral&utm_source=unsplash">Unsplash</a></p>
         </footer>
     </div>
 
-    <script src="https://unpkg.com/lucide@0.263.1/dist/umd/lucide.js"></script>
     <script src="js/app.js"></script>
     <script>
-        // Initialize Lucide icons after everything loads
-        window.addEventListener('load', function() {
+        // Initialize Lucide icons after DOM content is loaded
+        document.addEventListener('DOMContentLoaded', function() {
             if (typeof lucide !== 'undefined') {
                 lucide.createIcons();
             }
