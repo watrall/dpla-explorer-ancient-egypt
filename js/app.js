@@ -1,9 +1,14 @@
+// js/app.js
+
+// --- Configuration ---
 const API_PROXY_URL = 'https://faas-nyc1-2ef2e6cc.doserverless.co/api/v1/web/fn-db103013-6f04-45ed-9d08-869494cf2959/default/dpla-api-proxy';
 const CACHE_DURATION_HOURS = 24;
 const DEFAULT_ITEMS_PER_PAGE = 20;
 const SEARCH_DEBOUNCE_MS = 300;
 const DEMO_RECORD_COUNT = 200;
+const BATCH_SIZE = 1000; // Load 1000 records per batch
 
+// --- Date Range Definitions ---
 const DATE_RANGES = {
     "before-1800": { start: null, end: 1799 },
     "1800-1900": { start: 1800, end: 1900 },
@@ -12,6 +17,7 @@ const DATE_RANGES = {
     "after-2000": { start: 2001, end: null }
 };
 
+// --- State Management ---
 let appState = {
     allRecords: [],
     filteredRecords: [],
@@ -23,9 +29,15 @@ let appState = {
     selectedInstitutions: [],
     selectedDateRange: '',
     isLoading: false,
-    hasError: false
+    hasError: false,
+    totalRecordsAvailable: 0,
+    currentApiOffset: 0,
+    isLoadingMore: false,
+    allRecordsLoaded: false,
+    batchesLoaded: new Set() // Track which batches we've loaded
 };
 
+// --- DOM Elements ---
 const elements = {
     listViewBtn: document.getElementById('listViewBtn'),
     compactImageViewBtn: document.getElementById('compactImageViewBtn'),
@@ -42,14 +54,18 @@ const elements = {
     totalPagesNum: document.getElementById('totalPagesNum'),
     typeFilterButton: document.querySelector('#typeFilterContainer .dropdown-button'),
     typeFilterMenu: document.querySelector('#typeFilterContainer .dropdown-menu'),
+    typeFilterSelect: document.getElementById('typeFilter'),
     institutionFilterButton: document.querySelector('#institutionFilterContainer .dropdown-button'),
     institutionFilterMenu: document.querySelector('#institutionFilterContainer .dropdown-menu'),
+    institutionFilterSelect: document.getElementById('institutionFilter'),
     dateFilterButton: document.querySelector('#dateFilterContainer .dropdown-button'),
     dateFilterMenu: document.querySelector('#dateFilterContainer .dropdown-menu'),
+    dateFilterSelect: document.getElementById('dateFilter'),
     dateFilterRadios: document.querySelectorAll('input[name="dateFilterGroup"]'),
     clearFiltersBtn: document.getElementById('clearFiltersBtn')
 };
 
+// --- Utility Functions ---
 function showElement(el) {
     el.classList.remove('hidden');
 }
@@ -82,6 +98,7 @@ function setError(hasError) {
     }
 }
 
+// --- Cache Management ---
 const FULL_DATASET_CACHE_KEY = 'dpla_egypt_full_dataset_demo_v4';
 
 function isCacheValid(cachedItem) {
@@ -98,6 +115,7 @@ function saveFullDatasetToCache(data) {
             data
         };
         localStorage.setItem(FULL_DATASET_CACHE_KEY, JSON.stringify(cacheItem));
+        console.log("Full dataset saved to cache.");
     } catch (e) {
         console.warn("Could not save full dataset to localStorage", e);
     }
@@ -107,12 +125,15 @@ function loadFullDatasetFromCache() {
     try {
         const cachedItemString = localStorage.getItem(FULL_DATASET_CACHE_KEY);
         if (!cachedItemString) {
+            console.log("No cached dataset found.");
             return null;
         }
         const cachedItem = JSON.parse(cachedItemString);
         if (isCacheValid(cachedItem) && Array.isArray(cachedItem.data)) {
+            console.log("Loaded valid full dataset from cache.");
             return cachedItem.data;
         } else {
+            console.warn("Cached data is invalid or corrupted. Removing.");
             localStorage.removeItem(FULL_DATASET_CACHE_KEY);
             return null;
         }
@@ -122,7 +143,9 @@ function loadFullDatasetFromCache() {
     }
 }
 
-async function fetchAllDplaRecords() {
+// --- API Interaction with Progressive Loading ---
+async function fetchInitialBatch() {
+    // Clear old cache keys
     localStorage.removeItem('dpla_egypt_full_dataset_demo');
     localStorage.removeItem('dpla_egypt_full_dataset_demo_v2');
     localStorage.removeItem('dpla_egypt_full_dataset_demo_v3');
@@ -130,6 +153,7 @@ async function fetchAllDplaRecords() {
     let allRecords = loadFullDatasetFromCache();
     
     if (allRecords) {
+        console.log("Using cached data with", allRecords.length, "records");
         return allRecords;
     }
     
@@ -137,56 +161,77 @@ async function fetchAllDplaRecords() {
     setError(false);
     
     try {
+        console.log("Fetching initial batch of records from DPLA API via DigitalOcean proxy...");
+        
         const searchQuery = 'ancient egypt OR egyptian';
         
+        // First, get the total count
         const countUrl = new URL(API_PROXY_URL);
         countUrl.searchParams.set('endpoint', 'items');
         countUrl.searchParams.set('q', searchQuery);
         countUrl.searchParams.set('page_size', '0');
         
+        console.log("Fetching record count with URL:", countUrl.toString());
+        
         const countResponse = await fetch(countUrl.toString());
         if (!countResponse.ok) {
             const errorText = await countResponse.text();
+            console.error("API Error Response:", errorText);
             throw new Error(`Failed to get record count: ${countResponse.status} - ${errorText}`);
         }
         
         const countData = await countResponse.json();
         const totalRecords = countData.count || 0;
+        appState.totalRecordsAvailable = totalRecords;
+        console.log(`Total records available: ${totalRecords}`);
         
         if (totalRecords === 0) {
+            console.log("No records found with the search query");
             return [];
         }
         
-        const batchSize = 100;
-        const totalPages = Math.min(Math.ceil(totalRecords / batchSize), 10);
+        // Fetch first batch (up to 1000 records)
+        const batchSize = Math.min(1000, totalRecords);
+        const totalPages = Math.ceil(batchSize / 100);
         let allDocs = [];
+        
+        console.log(`Fetching first batch of ${batchSize} records (${totalPages} pages)...`);
         
         for (let page = 1; page <= totalPages; page++) {
             const proxyUrl = new URL(API_PROXY_URL);
             proxyUrl.searchParams.set('endpoint', 'items');
             proxyUrl.searchParams.set('q', searchQuery);
-            proxyUrl.searchParams.set('page_size', batchSize.toString());
+            proxyUrl.searchParams.set('page_size', '100');
             proxyUrl.searchParams.set('page', page.toString());
+            
+            console.log(`Fetching page ${page} of ${totalPages}...`);
             
             const response = await fetch(proxyUrl.toString());
             if (!response.ok) {
+                console.error(`Failed to fetch page ${page}: ${response.status}`);
                 continue;
             }
             
             const data = await response.json();
             if (data && Array.isArray(data.docs)) {
                 allDocs = allDocs.concat(data.docs);
+                console.log(`Fetched ${data.docs.length} records from page ${page}`);
+            } else {
+                console.warn(`No docs found in page ${page} response`);
             }
             
             await new Promise(resolve => setTimeout(resolve, 50));
         }
         
         allRecords = allDocs;
+        appState.currentApiOffset = allDocs.length;
+        appState.batchesLoaded.add(0); // Mark first batch (0-999) as loaded
+        console.log(`Successfully fetched initial batch of ${allRecords.length} records from DPLA.`);
         saveFullDatasetToCache(allRecords);
         return allRecords;
         
     } catch (error) {
-        console.error("Error fetching full dataset:", error);
+        console.error("Error fetching initial batch:", error);
         setError(true);
         return [];
     } finally {
@@ -194,6 +239,112 @@ async function fetchAllDplaRecords() {
     }
 }
 
+// Load next batch of records progressively
+async function loadNextBatch(batchNumber) {
+    if (appState.isLoadingMore || appState.allRecordsLoaded) return;
+    
+    // Check if this batch is already loaded
+    if (appState.batchesLoaded.has(batchNumber)) {
+        console.log(`Batch ${batchNumber} already loaded`);
+        return;
+    }
+    
+    appState.isLoadingMore = true;
+    console.log(`Loading batch ${batchNumber}...`);
+    
+    try {
+        const searchQuery = 'ancient egypt OR egyptian';
+        const startRecord = batchNumber * BATCH_SIZE;
+        
+        // Check if we've already loaded all available records
+        if (startRecord >= appState.totalRecordsAvailable) {
+            appState.allRecordsLoaded = true;
+            console.log("All records have been loaded.");
+            return;
+        }
+        
+        // Calculate how many records to fetch in this batch
+        const remainingRecords = appState.totalRecordsAvailable - startRecord;
+        const batchSize = Math.min(BATCH_SIZE, remainingRecords);
+        const startPage = Math.floor(startRecord / 100) + 1;
+        const endPage = startPage + Math.ceil(batchSize / 100) - 1;
+        
+        console.log(`Loading batch ${batchNumber}: ${batchSize} records from pages ${startPage} to ${endPage}...`);
+        
+        let newDocs = [];
+        
+        for (let page = startPage; page <= endPage; page++) {
+            const proxyUrl = new URL(API_PROXY_URL);
+            proxyUrl.searchParams.set('endpoint', 'items');
+            proxyUrl.searchParams.set('q', searchQuery);
+            proxyUrl.searchParams.set('page_size', '100');
+            proxyUrl.searchParams.set('page', page.toString());
+            
+            console.log(`Fetching page ${page} for batch ${batchNumber}...`);
+            
+            const response = await fetch(proxyUrl.toString());
+            if (!response.ok) {
+                console.error(`Failed to fetch page ${page}: ${response.status}`);
+                continue;
+            }
+            
+            const data = await response.json();
+            if (data && Array.isArray(data.docs)) {
+                newDocs = newDocs.concat(data.docs);
+                console.log(`Fetched ${data.docs.length} records from page ${page}`);
+            } else {
+                console.warn(`No docs found in page ${page} response`);
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, 50));
+        }
+        
+        // Add new records to the existing collection
+        appState.allRecords = appState.allRecords.concat(newDocs);
+        appState.batchesLoaded.add(batchNumber);
+        
+        console.log(`Successfully loaded batch ${batchNumber} with ${newDocs.length} records. Total: ${appState.allRecords.length}`);
+        
+        // Check if we've loaded all available records
+        if (appState.allRecords.length >= appState.totalRecordsAvailable) {
+            appState.allRecordsLoaded = true;
+            console.log("All available records have been loaded.");
+        }
+        
+        // Update filtered records if we're on a page that might need these new records
+        filterAndRender();
+        
+    } catch (error) {
+        console.error(`Error loading batch ${batchNumber}:`, error);
+    } finally {
+        appState.isLoadingMore = false;
+    }
+}
+
+// Check if we need to load more records based on current page
+function checkIfNeedMoreRecords() {
+    if (appState.allRecordsLoaded || appState.isLoadingMore) return;
+    
+    const recordsNeeded = appState.currentPage * appState.itemsPerPage;
+    const currentRecordCount = appState.allRecords.length;
+    
+    // If we're approaching the end of loaded records, load more
+    if (recordsNeeded > currentRecordCount - 200) {
+        const nextBatchNumber = Math.floor(currentRecordCount / BATCH_SIZE);
+        loadNextBatch(nextBatchNumber);
+    }
+    
+    // Also check if we need the next batch
+    const nextPageRecordsNeeded = (appState.currentPage + 2) * appState.itemsPerPage;
+    if (nextPageRecordsNeeded > currentRecordCount - 200) {
+        const nextBatchNumber = Math.floor(currentRecordCount / BATCH_SIZE) + 1;
+        if (nextBatchNumber * BATCH_SIZE < appState.totalRecordsAvailable) {
+            loadNextBatch(nextBatchNumber);
+        }
+    }
+}
+
+// --- View Rendering ---
 function renderListView(records) {
     const listElement = document.createElement('ul');
     listElement.className = 'list-view';
@@ -267,7 +418,6 @@ function renderTileView(records) {
     elements.contentArea.innerHTML = '';
     elements.contentArea.appendChild(gridElement);
 
-    // Initialize Lucide icons after rendering
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -339,7 +489,6 @@ function renderCompactImageView(records) {
     elements.contentArea.innerHTML = '';
     elements.contentArea.appendChild(listElement);
 
-    // Initialize Lucide icons after rendering
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -373,8 +522,12 @@ function renderCurrentView() {
         renderCompactImageView(recordsToShow);
     }
     updatePaginationControls(appState.filteredRecords.length);
+    
+    // Check if we need to load more records
+    checkIfNeedMoreRecords();
 }
 
+// --- Dropdown Toggle Function ---
 function toggleDropdown(button, menu) {
     const isExpanded = button.getAttribute('aria-expanded') === 'true';
     
@@ -411,6 +564,7 @@ document.addEventListener('click', (e) => {
     }
 });
 
+// --- Event Handlers ---
 function setupEventListeners() {
     function setView(viewName) {
         appState.currentView = viewName;
@@ -464,6 +618,9 @@ function setupEventListeners() {
             appState.currentPage++;
             renderCurrentView();
             window.scrollTo({ top: 0, behavior: 'smooth' });
+            
+            // Check if we need to load more records
+            checkIfNeedMoreRecords();
         }
     });
 
@@ -549,6 +706,7 @@ function setupEventListeners() {
     }
 }
 
+// --- Filter Logic ---
 function populateFilters() {
     if (!appState.allRecords || !Array.isArray(appState.allRecords) || appState.allRecords.length === 0) return;
 
@@ -674,8 +832,8 @@ function filterAndRender() {
     renderCurrentView();
 }
 
+// --- Initialization ---
 async function initApp() {
-    // Initialize Lucide icons
     if (typeof lucide !== 'undefined') {
         lucide.createIcons();
     }
@@ -686,7 +844,7 @@ async function initApp() {
     elements.compactImageViewBtn.classList.remove('active');
     elements.tileViewBtn.classList.add('active');
 
-    const fullDataset = await fetchAllDplaRecords();
+    const fullDataset = await fetchInitialBatch();
 
     if (fullDataset && Array.isArray(fullDataset) && fullDataset.length > 0) {
         appState.allRecords = fullDataset;
@@ -694,7 +852,16 @@ async function initApp() {
         populateFilters();
         renderCurrentView();
         showElement(elements.contentArea);
+        console.log("Application initialized successfully with", fullDataset.length, "records.");
+        
+        // Start loading the next batch in background if there are more records
+        if (appState.totalRecordsAvailable > appState.allRecords.length) {
+            setTimeout(() => {
+                loadNextBatch(1); // Load second batch (1000-1999 records)
+            }, 2000); // Start loading after 2 seconds
+        }
     } else if (!appState.hasError && !appState.isLoading) {
+        console.warn("No data fetched and no error set. Falling back to demo data.");
         appState.allRecords = generateDemoData(DEMO_RECORD_COUNT);
         appState.filteredRecords = [...appState.allRecords];
         populateFilters();
@@ -704,6 +871,7 @@ async function initApp() {
     }
 }
 
+// --- Demo Data Generator ---
 function generateDemoData(count) {
     const types = ['image', 'text', 'physical object', 'moving image', 'sound', 'dataset'];
     const providers = [
@@ -761,9 +929,5 @@ function generateDemoData(count) {
     return data;
 }
 
-// Initialize the app when the DOM is loaded
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initApp);
-} else {
-    initApp();
-}
+// --- Start the App ---
+document.addEventListener('DOMContentLoaded', initApp);
